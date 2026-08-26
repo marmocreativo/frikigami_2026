@@ -1,4 +1,4 @@
-<div class="navbar bg-base-100 shadow-sm px-4">
+<div class="navbar fixed top-5 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2.5rem)] max-w-8xl bg-base-100/80 backdrop-blur-md shadow-lg rounded-box px-4">
     <div class="navbar-start">
         <div class="dropdown lg:hidden">
             <div tabindex="0" role="button" class="btn btn-ghost">
@@ -14,7 +14,9 @@
                 <li><a href="{{ route('shop.index') }}">Tienda</a></li>
             </ul>
         </div>
-        <a href="{{ route('home') }}" class="btn btn-ghost text-xl">Frikigami</a>
+        <a href="{{ route('home') }}" class="btn btn-ghost">
+            <img src="{{ asset('images/logo.png') }}" alt="Frikigami" class="h-24 w-auto">
+        </a>
     </div>
 
     <div class="navbar-center hidden lg:flex">
@@ -31,6 +33,8 @@
         <form action="{{ route('animes.index') }}" method="GET" class="hidden md:block">
             <input type="text" name="q" placeholder="Buscar anime..." class="input input-bordered input-sm w-48">
         </form>
+
+        <x-theme-toggle />
 
         @auth
             <div class="dropdown dropdown-end">

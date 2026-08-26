@@ -11,6 +11,13 @@ class HomeController extends Controller
 {
     public function __invoke(): View
     {
+        // Últimas temporadas registradas (para la fila de "categorías")
+        $seasons = Season::withCount('animes')
+            ->orderByDesc('year')
+            ->orderByRaw("FIELD(name, 'Otoño', 'Verano', 'Primavera', 'Invierno')")
+            ->take(6)
+            ->get();
+
         // Animes de la temporada actual (la más reciente)
         $currentSeason = Season::orderByDesc('year')
             ->orderByRaw("FIELD(name, 'Otoño', 'Verano', 'Primavera', 'Invierno')")
@@ -36,6 +43,6 @@ class HomeController extends Controller
             ->take(6)
             ->get();
 
-        return view('home', compact('currentSeason', 'seasonAnimes', 'latestNews', 'ongoingAnimes'));
+        return view('home', compact('seasons', 'currentSeason', 'seasonAnimes', 'latestNews', 'ongoingAnimes'));
     }
 }

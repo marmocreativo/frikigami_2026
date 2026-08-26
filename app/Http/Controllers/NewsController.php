@@ -21,6 +21,21 @@ class NewsController extends Controller
     {
         $news->load('user', 'animes', 'comments.user');
 
-        return view('news.show', compact('news'));
+        $relatedNews = News::whereHas('animes', function ($q) use ($news) {
+                $q->whereIn('animes.id', $news->animes->pluck('id'));
+            })
+            ->where('id', '!=', $news->id)
+            ->published()
+            ->latest('published_at')
+            ->take(5)
+            ->get();
+
+        $latestNews = News::where('id', '!=', $news->id)
+            ->published()
+            ->latest('published_at')
+            ->take(5)
+            ->get();
+
+        return view('news.show', compact('news', 'relatedNews', 'latestNews'));
     }
 }

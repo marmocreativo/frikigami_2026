@@ -15,10 +15,26 @@ class AnimeController extends Controller
     public function index(): View
     {
         $animes = Anime::with('season', 'genres')
+            ->when(request('q'), function ($query, $q) {
+                $query->where('title', 'like', "%{$q}%");
+            })
+            ->when(request('genre'), function ($query, $genreSlug) {
+                $query->whereHas('genres', function ($q) use ($genreSlug) {
+                    $q->where('slug', $genreSlug);
+                });
+            })
+            ->when(request('season'), function ($query, $seasonId) {
+                $query->where('season_id', $seasonId);
+            })
+            ->when(request('status'), function ($query, $status) {
+                $query->where('status', $status);
+            })
             ->latest()
-            ->paginate(12);
+            ->paginate(12)
+            ->withQueryString();
+
         $genres = Genre::orderBy('name')->get();
-        $seasons = Season::orderBy('name')->get();
+        $seasons = Season::orderByDesc('year')->orderBy('name')->get();
 
         return view('animes.index', compact('animes', 'genres', 'seasons'));
     }
@@ -29,7 +45,20 @@ class AnimeController extends Controller
 
         $tab = request('tab', 'info');
 
-        return view('animes.show', compact('anime', 'tab'));
+        $sameSeason = Anime::where('season_id', $anime->season_id)
+            ->where('id', '!=', $anime->id)
+            ->when(!$anime->season_id, fn ($q) => $q->whereRaw('1 = 0'))
+            ->take(5)
+            ->get();
+
+        $sameGenre = Anime::whereHas('genres', function ($q) use ($anime) {
+                $q->whereIn('genres.id', $anime->genres->pluck('id'));
+            })
+            ->where('id', '!=', $anime->id)
+            ->take(5)
+            ->get();
+
+        return view('animes.show', compact('anime', 'tab', 'sameSeason', 'sameGenre'));
     }
 
     public function create(): View

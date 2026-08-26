@@ -1,10 +1,129 @@
 @import 'tailwindcss';
-@plugin "daisyui";
+@plugin "daisyui" {
+    themes: frikigami-light --default, frikigami-dark;
+}
+
+@plugin "daisyui/theme" {
+    name: "frikigami-light";
+    default: true;
+    prefersdark: false;
+    color-scheme: light;
+    noise: 0;
+    depth: 0;
+
+    --btn-border-style: none;
+    --btn-hover-border: none;
+
+    --color-base-100: oklch(100% 0 0);
+    --color-base-200: oklch(97% 0 0);
+    --color-base-300: oklch(92% 0 0);
+    --color-base-content: oklch(20% 0 0);
+
+    --color-primary: #75e8f9;
+    --color-primary-content: oklch(20% 0 0);
+
+    --color-secondary: #4d2f6d;
+    --color-secondary-content: oklch(98% 0 0);
+
+    --color-accent: oklch(75% 0.15 190);
+    --color-accent-content: oklch(20% 0 0);
+
+    --color-neutral: oklch(25% 0 0);
+    --color-neutral-content: oklch(95% 0 0);
+
+    --color-info: oklch(75% 0.12 220);
+    --color-success: oklch(75% 0.15 150);
+    --color-warning: oklch(80% 0.15 85);
+    --color-error: oklch(65% 0.2 25);
+
+    --radius-box: 20px;
+    --radius-field: 20px;
+    --radius-selector: 20px;
+}
+
+@plugin "daisyui/theme" {
+    name: "frikigami-dark";
+    default: false;
+    prefersdark: false;
+    color-scheme: dark;
+    noise: 0;
+    depth: 0;
+
+    --btn-border-style: none;
+    --btn-hover-border: none;
+    --color-base-100: #2C2C2C;
+    --color-base-200: #242424;
+    --color-base-300: #1c1c1c;
+    --color-base-content: oklch(92% 0 0);
+
+    --color-primary: #75e8f9;
+    --color-primary-content: oklch(20% 0 0);
+
+    --color-secondary: #4d2f6d;
+    --color-secondary-content: oklch(98% 0 0);
+
+    --color-accent: oklch(75% 0.15 190);
+    --color-accent-content: oklch(15% 0 0);
+
+    --color-neutral: oklch(30% 0.01 260);
+    --color-neutral-content: oklch(95% 0 0);
+
+    --color-info: oklch(75% 0.12 220);
+    --color-success: oklch(75% 0.15 150);
+    --color-warning: oklch(80% 0.15 85);
+    --color-error: oklch(65% 0.2 25);
+
+    --radius-box: 20px;
+    --radius-field: 20px;
+    --radius-selector: 20px;
+}
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    --font-sans: 'Segoe UI', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* Escala tipográfica basada en p = 16px, h2 = 32px (ratio ~1.26 / minor third aprox) */
+    --text-xs: 0.75rem;    /* 12px */
+    --text-sm: 0.875rem;   /* 14px */
+    --text-base: 1rem;     /* 16px  ← párrafo default */
+    --text-lg: 1.125rem;   /* 18px */
+    --text-xl: 1.266rem;   /* 20.25px */
+    --text-2xl: 1.5rem;    /* 24px */
+    --text-3xl: 2rem;      /* 32px  ← h2 */
+    --text-4xl: 2.53rem;   /* ~40.5px  h1 */
+    --text-5xl: 3.375rem;  /* 54px */
+
+    --container-8xl: 96rem; /* 1536px, para el box grande de desktop */
+}
+
+/* Border radius manual, forzado para ambos temas */
+.navbar,
+.card,
+.modal-box,
+.alert {
+    border-radius: 20px !important;
+}
+
+.bnt{
+    border-style: none !important;
+}
+.bnt:hover{
+    border-style: none !important;
+}
+
+.btn,
+.input,
+.select,
+.textarea,
+.file-input {
+    border-radius: 20px !important;
+}
+
+.badge,
+.checkbox,
+.toggle {
+    border-radius: 20px !important;
 }
