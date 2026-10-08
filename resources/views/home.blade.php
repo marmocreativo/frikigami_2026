@@ -55,7 +55,7 @@
                                 $seasonAccents = ['bg-primary/10', 'bg-secondary/10'];
                             @endphp
                             @foreach ($seasons as $index => $season)
-                                <a href="{{ route('animes.index', ['season' => $season->id]) }}"
+                                <a href="{{ route('animes.season', $season->slug) }}"
                                 class="card {{ $seasonAccents[$index % count($seasonAccents)] }} border-none hover:-translate-y-0.5 transition-all">
                                     <div class="card-body items-center justify-center text-center p-6">
                                         <p class="text-xl font-bold text-base-content">{{ $season->label }}</p>

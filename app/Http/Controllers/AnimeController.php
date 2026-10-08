@@ -12,53 +12,125 @@ use Illuminate\View\View;
 
 class AnimeController extends Controller
 {
+    private function catalogQuery()
+    {
+        return Anime::with('season', 'genres')
+            ->when(request('q'), fn ($query, $q) => $query->where('title', 'like', "%{$q}%"))
+            ->when(request('genre'), fn ($query, $slug) => $query->whereHas('genres', fn ($g) => $g->where('slug', $slug)))
+            ->when(request('season'), fn ($query, $id) => $query->where('season_id', $id))
+            ->when(request('status'), fn ($query, $status) => $query->where('status', $status))
+            ->latest();
+    }
+
     public function index(): View
     {
-        $animes = Anime::with('season', 'genres')
-            ->when(request('q'), function ($query, $q) {
-                $query->where('title', 'like', "%{$q}%");
-            })
-            ->when(request('genre'), function ($query, $genreSlug) {
-                $query->whereHas('genres', function ($q) use ($genreSlug) {
-                    $q->where('slug', $genreSlug);
-                });
-            })
-            ->when(request('season'), function ($query, $seasonId) {
-                $query->where('season_id', $seasonId);
-            })
-            ->when(request('status'), function ($query, $status) {
-                $query->where('status', $status);
-            })
-            ->latest()
-            ->paginate(12)
-            ->withQueryString();
-
+        $animes = $this->catalogQuery()->paginate(12)->withQueryString();
         $genres = Genre::orderBy('name')->get();
         $seasons = Season::orderByDesc('year')->orderBy('name')->get();
 
         return view('animes.index', compact('animes', 'genres', 'seasons'));
     }
 
-    public function show(Anime $anime): View
+    public function season(Season $temporada): View
     {
-        $anime->load('season', 'genres', 'animeSeasons.episodes', 'characters.voiceActors', 'staff', 'news.user');
+        $animes = $this->catalogQuery()
+            ->where('season_id', $temporada->id)
+            ->paginate(12)->withQueryString();
 
-        $tab = request('tab', 'info');
+        return view('animes.index', [
+            'animes' => $animes,
+            'genres' => Genre::orderBy('name')->get(),
+            'seasons' => Season::orderByDesc('year')->orderBy('name')->get(),
+            'activeSeason' => $temporada,
+        ]);
+    }
 
+    public function genre(Genre $genre): View
+    {
+        $animes = $this->catalogQuery()
+            ->whereHas('genres', fn ($q) => $q->where('genres.id', $genre->id))
+            ->paginate(12)->withQueryString();
+
+        return view('animes.index', [
+            'animes' => $animes,
+            'genres' => Genre::orderBy('name')->get(),
+            'seasons' => Season::orderByDesc('year')->orderBy('name')->get(),
+            'activeGenre' => $genre,
+        ]);
+    }
+
+    public function show(Anime $anime): View|RedirectResponse
+    {
+        // Compatibilidad con los links viejos ?tab=
+        $legacy = [
+            'cast' => 'animes.cast',
+            'characters' => 'animes.characters',
+            'episodes' => 'animes.episodes',
+            'news' => 'animes.news',
+        ];
+        if (isset($legacy[request('tab')])) {
+            return redirect()->route($legacy[request('tab')], $anime, 301);
+        }
+
+        $anime->load('season', 'genres')->loadCount(['episodes', 'animeSeasons']);
+
+        return $this->renderTab('animes.show', $anime);
+    }
+
+    public function cast(Anime $anime): View
+    {
+        $anime->load([
+            'season', 'genres', 'staff',
+            'characters.voiceActors' => fn ($q) => $q->wherePivot('anime_id', $anime->id),
+        ]);
+
+        return $this->renderTab('animes.cast', $anime);
+    }
+
+    public function characters(Anime $anime): View
+    {
+        $anime->load([
+            'season', 'genres',
+            'characters.voiceActors' => fn ($q) => $q->wherePivot('anime_id', $anime->id),
+        ]);
+
+        return $this->renderTab('animes.characters', $anime);
+    }
+
+    public function episodes(Anime $anime): View
+    {
+        $anime->load('season', 'genres', 'animeSeasons.episodes');
+
+        return $this->renderTab('animes.episodes', $anime);
+    }
+
+    public function news(Anime $anime): View
+    {
+        $anime->load('season', 'genres');
+
+        $news = $anime->news()
+            ->published()
+            ->with('user')
+            ->latest('published_at')
+            ->paginate(10);
+
+        return $this->renderTab('animes.news', $anime, compact('news'));
+    }
+
+    private function renderTab(string $view, Anime $anime, array $data = []): View
+    {
         $sameSeason = Anime::where('season_id', $anime->season_id)
             ->where('id', '!=', $anime->id)
-            ->when(!$anime->season_id, fn ($q) => $q->whereRaw('1 = 0'))
+            ->when(! $anime->season_id, fn ($q) => $q->whereRaw('1 = 0'))
             ->take(5)
             ->get();
 
-        $sameGenre = Anime::whereHas('genres', function ($q) use ($anime) {
-                $q->whereIn('genres.id', $anime->genres->pluck('id'));
-            })
+        $sameGenre = Anime::whereHas('genres', fn ($q) => $q->whereIn('genres.id', $anime->genres->pluck('id')))
             ->where('id', '!=', $anime->id)
             ->take(5)
             ->get();
 
-        return view('animes.show', compact('anime', 'tab', 'sameSeason', 'sameGenre'));
+        return view($view, array_merge(compact('anime', 'sameSeason', 'sameGenre'), $data));
     }
 
     public function create(): View

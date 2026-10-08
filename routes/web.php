@@ -7,8 +7,20 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', App\Http\Controllers\HomeController::class)->name('home');
 
 // Animes
-Route::get('/animes', [App\Http\Controllers\AnimeController::class, 'index'])->name('animes.index');
-Route::get('/animes/{anime:slug}', [App\Http\Controllers\AnimeController::class, 'show'])->name('animes.show');
+Route::controller(App\Http\Controllers\AnimeController::class)
+    ->prefix('animes')
+    ->name('animes.')
+    ->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('temporada/{temporada}', 'season')->name('season');
+        Route::get('genero/{genre:slug}', 'genre')->name('genre');
+
+        Route::get('{anime:slug}', 'show')->name('show');
+        Route::get('{anime:slug}/cast', 'cast')->name('cast');
+        Route::get('{anime:slug}/personajes', 'characters')->name('characters');
+        Route::get('{anime:slug}/episodios', 'episodes')->name('episodes');
+        Route::get('{anime:slug}/noticias', 'news')->name('news');
+    });
 
 // Noticias
 Route::get('/noticias', [App\Http\Controllers\NewsController::class, 'index'])->name('news.index');

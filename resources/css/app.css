@@ -8,11 +8,6 @@
     default: true;
     prefersdark: false;
     color-scheme: light;
-    noise: 0;
-    depth: 0;
-
-    --btn-border-style: none;
-    --btn-hover-border: none;
 
     --color-base-100: oklch(100% 0 0);
     --color-base-200: oklch(97% 0 0);
@@ -39,6 +34,17 @@
     --radius-box: 20px;
     --radius-field: 20px;
     --radius-selector: 20px;
+
+    --color-info-content: oklch(20% 0 0);
+    --color-success-content: oklch(20% 0 0);
+    --color-warning-content: oklch(20% 0 0);
+    --color-error-content: oklch(98% 0 0);
+
+    --size-selector: 0.25rem;
+    --size-field: 0.25rem;
+    --border: 1px;
+    --depth: 0;
+    --noise: 0;
 }
 
 @plugin "daisyui/theme" {

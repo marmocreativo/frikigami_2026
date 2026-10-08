@@ -22,12 +22,12 @@
 
         <div>
             <p class="text-sm text-base-content/60">Episodios totales</p>
-            <p class="font-medium">{{ $anime->episodes->count() }}</p>
+            <p class="font-medium">{{ $anime->episodes_count }}</p>
         </div>
 
         <div>
             <p class="text-sm text-base-content/60">Temporadas</p>
-            <p class="font-medium">{{ $anime->animeSeasons->count() }}</p>
+            <p class="font-medium">{{ $anime->anime_seasons_count }}</p>
         </div>
 
         @if ($anime->genres->isNotEmpty())
@@ -35,7 +35,7 @@
                 <p class="text-sm text-base-content/60 mb-1">Géneros</p>
                 <div class="flex flex-wrap gap-2">
                     @foreach ($anime->genres as $genre)
-                        <a href="{{ route('animes.index', ['genre' => $genre->slug]) }}" class="badge badge-outline hover:badge-primary transition-colors">
+                        <a href="{{ route('animes.genre', $genre->slug) }}" class="badge badge-outline hover:badge-primary transition-colors">
                             {{ $genre->name }}
                         </a>
                     @endforeach

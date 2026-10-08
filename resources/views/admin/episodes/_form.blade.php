@@ -2,7 +2,7 @@
     <label class="label"><span class="label-text">Temporada de la serie</span></label>
     <select name="anime_season_id" class="select select-bordered w-full @error('anime_season_id') select-error @enderror" required>
         <option value="">Selecciona una temporada</option>
-        @php $selected = old('anime_season_id', $episode->anime_season_id ?? null); @endphp
+        @php $selected = old('anime_season_id', $episode->anime_season_id ?? $selectedAnimeSeasonId ?? null); @endphp
         @foreach ($animeSeasons as $animeSeason)
             <option value="{{ $animeSeason->id }}" @selected((string) $selected === (string) $animeSeason->id)>
                 {{ $animeSeason->anime->title }} — {{ $animeSeason->label }}
@@ -15,7 +15,7 @@
 <div class="grid grid-cols-2 gap-4">
     <div class="form-control">
         <label class="label"><span class="label-text">Número de episodio</span></label>
-        <input type="number" name="number" value="{{ old('number', $episode->number ?? '') }}"
+        <input type="number" name="number" value="{{ old('number', $episode->number ?? $nextNumber ?? '') }}"
                class="input input-bordered w-full @error('number') input-error @enderror" min="1" required>
         @error('number')<span class="text-error text-sm mt-1">{{ $message }}</span>@enderror
     </div>

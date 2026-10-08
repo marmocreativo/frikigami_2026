@@ -10,21 +10,27 @@ use Illuminate\View\View;
 
 class AdminAnimeSeasonController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
+        $animes = Anime::orderBy('title')->get(['id', 'title', 'slug']);
+        $currentAnime = $animes->firstWhere('slug', $request->query('anime'));
+
         $animeSeasons = AnimeSeason::with('anime')
+            ->when($currentAnime, fn ($query, $anime) => $query->where('anime_id', $anime->id))
             ->orderBy('anime_id')
             ->orderBy('number')
-            ->paginate(20);
+            ->paginate(20)
+            ->withQueryString();
 
-        return view('admin.anime_seasons.index', compact('animeSeasons'));
+        return view('admin.anime_seasons.index', compact('animeSeasons', 'animes', 'currentAnime'));
     }
 
-    public function create(): View
+    public function create(Request $request): View
     {
         $animes = Anime::orderBy('title')->get();
+        $selectedAnimeId = $animes->firstWhere('slug', $request->query('anime'))?->id;
 
-        return view('admin.anime_seasons.create', compact('animes'));
+        return view('admin.anime_seasons.create', compact('animes', 'selectedAnimeId'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -44,10 +50,7 @@ class AdminAnimeSeasonController extends Controller
 
     public function show(AnimeSeason $animeSeason): RedirectResponse
     {
-        return redirect()->route('animes.show', [
-            'anime' => $animeSeason->anime,
-            'tab'   => 'episodes',
-        ]);
+        return redirect()->route('animes.episodes', $animeSeason->anime);
     }
 
     public function edit(AnimeSeason $animeSeason): View

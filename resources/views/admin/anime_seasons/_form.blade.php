@@ -2,7 +2,7 @@
     <label class="label"><span class="label-text">Anime</span></label>
     <select name="anime_id" class="select select-bordered w-full @error('anime_id') select-error @enderror" required>
         <option value="">Selecciona un anime</option>
-        @php $selected = old('anime_id', $animeSeason->anime_id ?? null); @endphp
+        @php $selected = old('anime_id', $animeSeason->anime_id ?? $selectedAnimeId ?? null); @endphp
         @foreach ($animes as $anime)
             <option value="{{ $anime->id }}" @selected((string) $selected === (string) $anime->id)>
                 {{ $anime->title }}

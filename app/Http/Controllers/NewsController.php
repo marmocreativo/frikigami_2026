@@ -11,8 +11,12 @@ class NewsController extends Controller
     {
         $news = News::with('user', 'animes')
             ->published()
+            ->when(request('q'), fn ($query, $q) => $query->where(
+                fn ($w) => $w->where('title', 'like', "%{$q}%")->orWhere('body', 'like', "%{$q}%")
+            ))
             ->latest('published_at')
-            ->paginate(12);
+            ->paginate(12)
+            ->withQueryString();
 
         return view('news.index', compact('news'));
     }

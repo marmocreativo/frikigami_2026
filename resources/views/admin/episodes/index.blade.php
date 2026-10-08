@@ -1,10 +1,37 @@
 <x-layouts.admin title="Episodios">
     <div class="flex items-center justify-between mb-6">
-        <h1 class="text-2xl font-bold">Episodios</h1>
-        <a href="{{ route('admin.episodes.create') }}" class="btn btn-primary btn-sm">+ Nuevo Episodio</a>
+        <div class="flex items-center gap-3">
+            @if ($currentAnime)
+                <a href="{{ route('admin.animes.index') }}" class="btn btn-ghost btn-sm">← Animes</a>
+            @endif
+            <h1 class="text-2xl font-bold">
+                {{ $currentAnime ? 'Episodios de ' . $currentAnime->title : 'Episodios' }}
+            </h1>
+        </div>
+        <a href="{{ route('admin.episodes.create', array_filter(['anime' => $currentAnime?->slug, 'anime_season' => $currentSeason?->id])) }}"
+           class="btn btn-primary btn-sm">+ Nuevo Episodio</a>
     </div>
 
     @include('admin.partials.alert')
+
+    <form method="GET" action="{{ route('admin.episodes.index') }}" class="card bg-base-100 shadow-sm mb-4">
+        <div class="card-body p-4 flex-row flex-wrap items-center gap-3">
+            <x-admin.anime-filter :animes="$animes" :current="$currentAnime?->slug" />
+
+            @if ($currentAnime)
+                <select name="anime_season" class="select select-sm w-full sm:w-52" onchange="this.form.submit()">
+                    <option value="">Todas las temporadas</option>
+                    @foreach ($animeSeasons as $animeSeason)
+                        <option value="{{ $animeSeason->id }}" @selected($currentSeason?->id === $animeSeason->id)>
+                            {{ $animeSeason->label }}
+                        </option>
+                    @endforeach
+                </select>
+
+                <a href="{{ route('admin.episodes.index') }}" class="btn btn-ghost btn-sm">Limpiar</a>
+            @endif
+        </div>
+    </form>
 
     <div class="card bg-base-100 shadow-sm">
         <div class="overflow-x-auto">

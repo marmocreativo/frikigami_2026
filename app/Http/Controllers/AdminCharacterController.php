@@ -6,16 +6,24 @@ use App\Http\Requests\StoreCharacterRequest;
 use App\Models\Character;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
+use App\Models\Anime;
+use Illuminate\Http\Request;
 
 class AdminCharacterController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $characters = Character::with('animes')
-            ->orderBy('name')
-            ->paginate(20);
+        $animes = Anime::orderBy('title')->get(['id', 'title', 'slug']);
+        $currentAnime = $animes->firstWhere('slug', $request->query('anime'));
 
-        return view('admin.characters.index', compact('characters'));
+        $characters = Character::with('animes')
+            ->when($currentAnime, fn ($query, $anime) => $query->whereHas('animes', fn ($a) => $a->where('animes.id', $anime->id)))
+            ->when($request->query('q'), fn ($query, $q) => $query->where('name', 'like', "%{$q}%"))
+            ->orderBy('name')
+            ->paginate(20)
+            ->withQueryString();
+
+        return view('admin.characters.index', compact('characters', 'animes', 'currentAnime'));
     }
 
     public function create(): View

@@ -14,13 +14,34 @@ use Illuminate\View\View;
 
 class AdminAnimeController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $animes = Anime::with('season', 'genres')
-            ->latest()
-            ->paginate(20);
+        $sortOptions = [
+            'recent'     => ['label' => 'Más recientes',          'column' => 'created_at', 'direction' => 'desc'],
+            'oldest'     => ['label' => 'Más antiguos',           'column' => 'created_at', 'direction' => 'asc'],
+            'updated'    => ['label' => 'Editados recientemente', 'column' => 'updated_at', 'direction' => 'desc'],
+            'title_asc'  => ['label' => 'Título (A-Z)',           'column' => 'title',      'direction' => 'asc'],
+            'title_desc' => ['label' => 'Título (Z-A)',           'column' => 'title',      'direction' => 'desc'],
+        ];
 
-        return view('admin.animes.index', compact('animes'));
+        $sort = in_array($request->query('sort'), array_keys($sortOptions), true)
+            ? $request->query('sort')
+            : 'recent';
+
+        $animes = Anime::with('season', 'genres')
+            ->when($request->query('q'), fn ($query, $q) => $query->where('title', 'like', "%{$q}%"))
+            ->when($request->query('season'), fn ($query, $id) => $query->where('season_id', $id))
+            ->when($request->query('genre'), fn ($query, $slug) => $query->whereHas('genres', fn ($g) => $g->where('slug', $slug)))
+            ->when($request->query('status'), fn ($query, $status) => $query->where('status', $status))
+            ->orderBy($sortOptions[$sort]['column'], $sortOptions[$sort]['direction'])
+            ->paginate(20)
+            ->withQueryString();
+
+        $genres = Genre::orderBy('name')->get();
+        $seasons = Season::orderByDesc('year')->orderBy('name')->get();
+        $sortLabels = collect($sortOptions)->map(fn ($option) => $option['label'])->all();
+
+        return view('admin.animes.index', compact('animes', 'genres', 'seasons', 'sort', 'sortLabels'));
     }
 
     public function create(): View

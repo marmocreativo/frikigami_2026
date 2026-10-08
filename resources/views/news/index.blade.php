@@ -1,6 +1,11 @@
 <x-layouts.app title="Noticias">
     <x-container class="pt-28">
         <div class="flex items-center justify-between mb-6">
+            <form method="GET" action="{{ route('news.index') }}" class="mb-6">
+                <label class="input w-full">
+                    <input type="search" name="q" value="{{ request('q') }}" placeholder="Buscar noticias..." />
+                </label>
+            </form>
             <h1 class="text-3xl font-bold">Noticias</h1>
             @auth
                 <a href="#" class="btn btn-primary btn-sm">+ Nueva Noticia</a>

@@ -1,7 +1,7 @@
 <div class="navbar fixed top-5 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2.5rem)] max-w-8xl bg-base-100/80 backdrop-blur-md shadow-lg rounded-box px-4">
     <div class="navbar-start">
         <div class="dropdown lg:hidden">
-            <div tabindex="0" role="button" class="btn btn-ghost">
+            <div tabindex="0" role="button">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
                 </svg>
