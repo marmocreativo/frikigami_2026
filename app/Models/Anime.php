@@ -20,6 +20,8 @@ class Anime extends Model
         'cover_image',
         'status',
         'season_id',
+        'anilist_id',
+        'mal_id',
     ];
 
     public function season(): BelongsTo

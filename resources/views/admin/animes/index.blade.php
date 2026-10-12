@@ -1,7 +1,12 @@
 <x-layouts.admin title="Animes">
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-2xl font-bold">Animes</h1>
-        <a href="{{ route('admin.animes.create') }}" class="btn btn-primary btn-sm">+ Nuevo Anime</a>
+        <div class="flex gap-2">
+    @if (request('season'))
+        <a href="{{ route('admin.seasons.anilist', request('season')) }}" class="btn btn-outline btn-sm">Comparar con AniList</a>
+    @endif
+    <a href="{{ route('admin.animes.create') }}" class="btn btn-primary btn-sm">+ Nuevo Anime</a>
+</div>
     </div>
 
     @include('admin.partials.alert')
@@ -93,6 +98,9 @@
                                     <ul id="rel-{{ $anime->id }}" popover
                                         class="dropdown dropdown-end menu menu-sm w-56 rounded-box bg-base-100 shadow-lg"
                                         style="position-anchor:--rel-{{ $anime->id }}">
+                                        <li><a href="{{ route('admin.news.index', ['anime' => $anime->slug]) }}">Noticias del anime</a></li>
+                                        <li><a href="{{ route('admin.news.create', ['anime' => $anime->slug]) }}">+ Nueva noticia de este anime</a></li>
+                                        <li class="my-1 h-px bg-base-300" role="separator"></li>
                                         <li><a href="{{ route('admin.anime-seasons.index', ['anime' => $anime->slug]) }}">Temporadas del anime</a></li>
                                         <li><a href="{{ route('admin.episodes.index', ['anime' => $anime->slug]) }}">Episodios del anime</a></li>
                                         <li><a href="{{ route('admin.characters.index', ['anime' => $anime->slug]) }}">Personajes del anime</a></li>

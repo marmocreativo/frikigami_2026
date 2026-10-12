@@ -1,9 +1,32 @@
 <x-layouts.admin title="Comentarios">
     <div class="flex items-center justify-between mb-6">
-        <h1 class="text-2xl font-bold">Comentarios</h1>
+        <div class="flex items-center gap-3">
+            @if ($currentAnime)
+                <a href="{{ route('admin.animes.index') }}" class="btn btn-ghost btn-sm">← Animes</a>
+            @endif
+            <h1 class="text-2xl font-bold">
+                {{ $currentAnime ? 'Comentarios de ' . $currentAnime->title : 'Comentarios' }}
+            </h1>
+        </div>
     </div>
 
     @include('admin.partials.alert')
+
+    <form method="GET" action="{{ route('admin.comments.index') }}" class="card bg-base-100 shadow-sm mb-4">
+        <div class="card-body p-4 flex-row flex-wrap items-center gap-3">
+            <x-admin.anime-filter :animes="$animes" :current="$currentAnime?->slug" />
+
+            <select name="type" class="select select-sm w-full sm:w-44" onchange="this.form.submit()">
+                <option value="">Noticias y episodios</option>
+                <option value="news" @selected($type === 'news')>Solo noticias</option>
+                <option value="episodes" @selected($type === 'episodes')>Solo episodios</option>
+            </select>
+
+            @if ($currentAnime || $type)
+                <a href="{{ route('admin.comments.index') }}" class="btn btn-ghost btn-sm">Limpiar</a>
+            @endif
+        </div>
+    </form>
 
     <div class="card bg-base-100 shadow-sm">
         <div class="overflow-x-auto">

@@ -63,6 +63,18 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Animes
     Route::resource('animes', App\Http\Controllers\AdminAnimeController::class);
 
+    // Temporadas de un anime desde AniList
+    Route::get('animes/{anime}/anilist', [App\Http\Controllers\AdminAnimeSyncController::class, 'show'])->name('animes.anilist');
+    Route::post('animes/{anime}/anilist/refresh', [App\Http\Controllers\AdminAnimeSyncController::class, 'refresh'])->name('animes.anilist.refresh');
+    Route::post('animes/{anime}/anilist/link', [App\Http\Controllers\AdminAnimeSyncController::class, 'linkAnime'])->name('animes.anilist.link');
+    Route::post('animes/{anime}/anilist/seasons', [App\Http\Controllers\AdminAnimeSyncController::class, 'importSeasons'])->name('animes.anilist.seasons');
+    Route::post('animes/{anime}/anilist/seasons/link', [App\Http\Controllers\AdminAnimeSyncController::class, 'linkSeason'])->name('animes.anilist.seasons.link');
+    Route::post('animes/{anime}/anilist/seasons/{animeSeason}/episodes', [App\Http\Controllers\AdminAnimeSyncController::class, 'importEpisodes'])->name('animes.anilist.episodes');
+    Route::get('animes/{anime}/anilist/cast', [App\Http\Controllers\AdminAnimeCastSyncController::class, 'show'])->name('animes.anilist.cast');
+    Route::post('animes/{anime}/anilist/cast/refresh', [App\Http\Controllers\AdminAnimeCastSyncController::class, 'refresh'])->name('animes.anilist.cast.refresh');
+    Route::post('animes/{anime}/anilist/cast/characters', [App\Http\Controllers\AdminAnimeCastSyncController::class, 'importCharacters'])->name('animes.anilist.cast.characters');
+    Route::post('animes/{anime}/anilist/cast/staff', [App\Http\Controllers\AdminAnimeCastSyncController::class, 'importStaff'])->name('animes.anilist.cast.staff');
+
     // Cast del anime (staff)
     Route::post('animes/{anime}/staff', [App\Http\Controllers\AdminAnimeController::class, 'attachStaff'])->name('animes.staff.attach');
     Route::delete('animes/{anime}/staff/{person}', [App\Http\Controllers\AdminAnimeController::class, 'detachStaff'])->name('animes.staff.detach');
@@ -77,6 +89,12 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     
     // Animes Seasons
     Route::resource('anime-seasons', App\Http\Controllers\AdminAnimeSeasonController::class);
+
+    // Comparar una temporada con AniList
+    Route::get('seasons/{season}/anilist', [App\Http\Controllers\AdminAniListController::class, 'show'])->name('seasons.anilist');
+    Route::post('seasons/{season}/anilist/refresh', [App\Http\Controllers\AdminAniListController::class, 'refresh'])->name('seasons.anilist.refresh');
+    Route::post('seasons/{season}/anilist/link', [App\Http\Controllers\AdminAniListController::class, 'link'])->name('seasons.anilist.link');
+    Route::post('seasons/{season}/anilist/import', [App\Http\Controllers\AdminAniListController::class, 'import'])->name('seasons.anilist.import');
 
     Route::resource('seasons', App\Http\Controllers\AdminSeasonController::class);
 

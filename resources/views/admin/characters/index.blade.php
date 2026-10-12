@@ -11,6 +11,7 @@
 
         <div class="flex gap-2">
             @if ($currentAnime)
+                <a href="{{ route('admin.animes.anilist.cast', $currentAnime) }}" class="btn btn-outline btn-sm">Buscar en AniList</a>
                 <a href="{{ route('admin.animes.show', ['anime' => $currentAnime->slug, 'tab' => 'characters']) }}"
                    class="btn btn-outline btn-sm">Asignar a este anime</a>
             @endif

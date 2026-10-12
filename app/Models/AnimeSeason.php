@@ -16,6 +16,8 @@ class AnimeSeason extends Model
         'number',
         'title',
         'year',
+        'anilist_id',
+        'mal_id',
     ];
 
     public function anime(): BelongsTo

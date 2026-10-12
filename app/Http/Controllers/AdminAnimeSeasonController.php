@@ -16,6 +16,7 @@ class AdminAnimeSeasonController extends Controller
         $currentAnime = $animes->firstWhere('slug', $request->query('anime'));
 
         $animeSeasons = AnimeSeason::with('anime')
+            ->withCount('episodes')
             ->when($currentAnime, fn ($query, $anime) => $query->where('anime_id', $anime->id))
             ->orderBy('anime_id')
             ->orderBy('number')

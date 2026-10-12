@@ -32,19 +32,60 @@
 </div>
 
 <div class="form-control">
-    <label class="label"><span class="label-text">Animes relacionados</span></label>
-    @php $selectedAnimes = old('animes', isset($news) ? $news->animes->pluck('id')->toArray() : []); @endphp
-    <div class="flex flex-wrap gap-3">
-        @foreach ($animes as $anime)
-            <label class="label cursor-pointer gap-2 border rounded-lg px-3 py-1">
-                <input type="checkbox" name="animes[]" value="{{ $anime->id }}" class="checkbox checkbox-sm"
-                       @checked(in_array($anime->id, $selectedAnimes))>
-                <span class="label-text">{{ $anime->title }}</span>
-            </label>
+    <label class="label"><span class="label-text">Anime relacionado</span></label>
+
+    @php
+        $selectedAnimes = old('animes', isset($news) ? $news->animes->pluck('id')->all() : ($selectedAnimeIds ?? []));
+        $selectedAnimes = array_values(array_filter($selectedAnimes));
+
+        if ($selectedAnimes === []) {
+            $selectedAnimes = [''];
+        }
+    @endphp
+
+    @if (! empty($returnAnime))
+        <input type="hidden" name="return_anime" value="{{ $returnAnime }}">
+    @endif
+
+    <div id="anime-selects" class="space-y-2">
+        @foreach ($selectedAnimes as $selectedId)
+            @include('admin.news._anime-select', ['selectedId' => $selectedId])
         @endforeach
     </div>
+
+    <template id="anime-select-template">
+        @include('admin.news._anime-select', ['selectedId' => ''])
+    </template>
+
+    <button type="button" id="add-anime" class="btn btn-ghost btn-sm mt-2 self-start">+ Agregar otro anime</button>
+
     @error('animes')<span class="text-error text-sm mt-1">{{ $message }}</span>@enderror
+    @error('animes.*')<span class="text-error text-sm mt-1">{{ $message }}</span>@enderror
 </div>
+
+<script>
+    (() => {
+        const container = document.getElementById('anime-selects');
+        const template = document.getElementById('anime-select-template');
+
+        document.getElementById('add-anime').addEventListener('click', () => {
+            container.appendChild(template.content.cloneNode(true));
+        });
+
+        container.addEventListener('click', (event) => {
+            const button = event.target.closest('.remove-anime');
+            if (! button) return;
+
+            const rows = container.querySelectorAll('.anime-select-row');
+
+            if (rows.length > 1) {
+                button.closest('.anime-select-row').remove();
+            } else {
+                rows[0].querySelector('select').value = '';
+            }
+        });
+    })();
+</script>
 
 <button type="submit" class="btn btn-primary w-full">
     {{ isset($news) ? 'Actualizar Noticia' : 'Crear Noticia' }}

@@ -1,11 +1,49 @@
 <x-layouts.admin title="Noticias">
     <div class="flex items-center justify-between mb-6">
-        <h1 class="text-2xl font-bold">Noticias</h1>
-        <a href="{{ route('admin.news.create') }}" class="btn btn-primary btn-sm">+ Nueva Noticia</a>
+        <div class="flex items-center gap-3">
+            @if ($currentAnime)
+                <a href="{{ route('admin.animes.index') }}" class="btn btn-ghost btn-sm">← Animes</a>
+            @endif
+            <h1 class="text-2xl font-bold">
+                {{ $currentAnime ? 'Noticias de ' . $currentAnime->title : 'Noticias' }}
+            </h1>
+        </div>
+        <a href="{{ route('admin.news.create', array_filter(['anime' => $currentAnime?->slug])) }}"
+           class="btn btn-primary btn-sm">
+            {{ $currentAnime ? '+ Nueva noticia de este anime' : '+ Nueva Noticia' }}
+        </a>
     </div>
 
     @include('admin.partials.alert')
 
+    <form method="GET" action="{{ route('admin.news.index') }}" class="card bg-base-100 shadow-sm mb-4">
+        <div class="card-body p-4 flex-row flex-wrap items-center gap-3">
+            <label class="input input-sm w-full sm:w-64">
+                <input type="search" name="q" value="{{ request('q') }}" placeholder="Buscar por título..." />
+            </label>
+
+            <x-admin.anime-filter :animes="$animes" :current="$currentAnime?->slug" />
+
+            <select name="status" class="select select-sm w-full sm:w-40" onchange="this.form.submit()">
+                <option value="">Cualquier estado</option>
+                <option value="published" @selected($status === 'published')>Publicadas</option>
+                <option value="scheduled" @selected($status === 'scheduled')>Programadas</option>
+                <option value="draft" @selected($status === 'draft')>Borradores</option>
+            </select>
+
+            <select name="sort" class="select select-sm w-full sm:w-56" onchange="this.form.submit()">
+                @foreach ($sortLabels as $key => $label)
+                    <option value="{{ $key }}" @selected($sort === $key)>{{ $label }}</option>
+                @endforeach
+            </select>
+
+            <button type="submit" class="btn btn-primary btn-sm">Buscar</button>
+
+            @if (request()->anyFilled(['q', 'anime', 'status', 'sort']))
+                <a href="{{ route('admin.news.index') }}" class="btn btn-ghost btn-sm">Limpiar</a>
+            @endif
+        </div>
+    </form>
     <div class="card bg-base-100 shadow-sm">
         <div class="overflow-x-auto">
             <table class="table table-zebra table-sm">
