@@ -39,4 +39,14 @@ return [
         'model' => env('GEMINI_MODEL', 'gemini-3.5-flash-lite'),
     ],
 
+    'translator' => env('TRANSLATOR_DRIVER', 'anthropic'),
+
+    'ai_driver' => env('AI_DRIVER', env('TRANSLATOR_DRIVER', 'anthropic')),
+
+    'anthropic' => [
+        'key' => env('ANTHROPIC_API_KEY'),
+        'model' => env('ANTHROPIC_MODEL', 'claude-haiku-4-5-20251001'),
+        'writing_model' => env('ANTHROPIC_WRITING_MODEL'),
+    ],
+
 ];

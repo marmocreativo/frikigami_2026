@@ -1,4 +1,40 @@
-<x-layouts.app :title="$news->title">
+<x-layouts.app :title="$news->seo_title">
+    <x-slot:head>
+        <meta name="description" content="{{ $news->seo_description }}">
+        <link rel="canonical" href="{{ route('news.show', $news) }}">
+
+        <meta property="og:type" content="article">
+        <meta property="og:site_name" content="Frikigami">
+        <meta property="og:locale" content="es_MX">
+        <meta property="og:title" content="{{ $news->seo_title }}">
+        <meta property="og:description" content="{{ $news->seo_description }}">
+        <meta property="og:url" content="{{ route('news.show', $news) }}">
+        @if ($news->cover_image)
+            <meta property="og:image" content="{{ url(Storage::url($news->cover_image)) }}">
+        @endif
+        @if ($news->published_at)
+            <meta property="article:published_time" content="{{ $news->published_at->toIso8601String() }}">
+        @endif
+
+        <meta name="twitter:card" content="{{ $news->cover_image ? 'summary_large_image' : 'summary' }}">
+        <meta name="twitter:title" content="{{ $news->seo_title }}">
+        <meta name="twitter:description" content="{{ $news->seo_description }}">
+
+        <script type="application/ld+json">
+            {!! json_encode(array_filter([
+                '@context' => 'https://schema.org',
+                '@type' => 'NewsArticle',
+                'headline' => \Illuminate\Support\Str::limit($news->seo_title, 110, ''),
+                'description' => $news->seo_description,
+                'datePublished' => $news->published_at?->toIso8601String(),
+                'dateModified' => $news->updated_at->toIso8601String(),
+                'author' => [['@type' => 'Person', 'name' => $news->user->name ?? 'Frikigami']],
+                'publisher' => ['@type' => 'Organization', 'name' => 'Frikigami'],
+                'mainEntityOfPage' => route('news.show', $news),
+                'image' => $news->cover_image ? [url(Storage::url($news->cover_image))] : null,
+            ]), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) !!}
+        </script>
+    </x-slot:head>
     <x-container class="pt-28">
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
 
@@ -30,8 +66,8 @@
 
                 <div class="divider"></div>
 
-                <div class="prose max-w-none mb-8">
-                    {!! nl2br(e($news->body)) !!}
+                <div class="news-body max-w-none mb-8">
+                    {!! $news->body_html !!}
                 </div>
 
                 <div class="divider"></div>

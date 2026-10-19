@@ -4,11 +4,11 @@
         <h1 class="text-2xl font-bold">Nuevo Anime</h1>
     </div>
 
-    <div class="card bg-base-100 shadow-sm">
-        <div class="card-body">
-            <form method="POST" action="{{ route('admin.animes.store') }}" enctype="multipart/form-data" class="space-y-4">
-                @include('animes._form')
-            </form>
-        </div>
+    @include('admin.partials.alert')
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        <form method="POST" action="{{ route('admin.animes.store') }}" enctype="multipart/form-data" class="contents">
+            @include('animes._form')
+        </form>
     </div>
 </x-layouts.admin>

@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
+use App\Contracts\Translator;
 use RuntimeException;
 
 class AdminAnimeSyncController extends Controller
@@ -29,6 +30,7 @@ class AdminAnimeSyncController extends Controller
     public function __construct(
         private AniListSeriesService $series,
         private KitsuService $kitsu,
+        private Translator $translator,
     ) {
     }
 
@@ -100,7 +102,7 @@ class AdminAnimeSyncController extends Controller
 
     public function importSeasons(Request $request, Anime $anime): RedirectResponse
     {
-        set_time_limit(180);
+        set_time_limit(600);
 
         $request->validate([
             'ids' => ['required', 'array', 'max:20'],
@@ -207,7 +209,7 @@ class AdminAnimeSyncController extends Controller
     {
         abort_unless($animeSeason->anime_id === $anime->id, 404);
 
-        set_time_limit(180);
+        set_time_limit(600);
 
         try {
             $result = $this->importEpisodesFor($animeSeason);
@@ -253,6 +255,17 @@ class AdminAnimeSyncController extends Controller
         }
 
         $existing = $animeSeason->episodes()->get()->keyBy('number');
+
+        // Sinopsis al español: solo episodios nuevos o con la sinopsis vacía
+        $pending = collect($episodes)
+            ->filter(fn ($episode) => $episode['number'] >= 1
+                && ! empty($episode['synopsis'])
+                && empty($existing->get($episode['number'])?->synopsis))
+            ->mapWithKeys(fn ($episode) => [$episode['number'] => $episode['synopsis']])
+            ->all();
+
+        $translated = $pending ? ($this->translator->toSpanish($pending) ?? []) : [];
+
         $created = 0;
         $updated = 0;
 
@@ -262,6 +275,7 @@ class AdminAnimeSyncController extends Controller
             }
 
             $title = $episode['title'] ? Str::limit($episode['title'], 255, '') : null;
+            $synopsis = $translated[$episode['number']] ?? ($episode['synopsis'] ?? null);
             $local = $existing->get($episode['number']);
 
             if ($local) {
@@ -271,8 +285,8 @@ class AdminAnimeSyncController extends Controller
                     $changes['title'] = $title;
                 }
 
-                if (! $local->synopsis && ! empty($episode['synopsis'])) {
-                    $changes['synopsis'] = $episode['synopsis'];
+                if (! $local->synopsis && $synopsis) {
+                    $changes['synopsis'] = $synopsis;
                 }
 
                 if (! $local->air_date && $episode['air_date']) {
@@ -291,7 +305,7 @@ class AdminAnimeSyncController extends Controller
                 'user_id' => auth()->id(),
                 'number' => $episode['number'],
                 'title' => $title,
-                'synopsis' => $episode['synopsis'] ?? null,
+                'synopsis' => $synopsis,
                 'air_date' => $episode['air_date'],
             ]);
 

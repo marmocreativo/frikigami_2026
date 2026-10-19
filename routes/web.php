@@ -74,6 +74,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('animes/{anime}/anilist/cast/refresh', [App\Http\Controllers\AdminAnimeCastSyncController::class, 'refresh'])->name('animes.anilist.cast.refresh');
     Route::post('animes/{anime}/anilist/cast/characters', [App\Http\Controllers\AdminAnimeCastSyncController::class, 'importCharacters'])->name('animes.anilist.cast.characters');
     Route::post('animes/{anime}/anilist/cast/staff', [App\Http\Controllers\AdminAnimeCastSyncController::class, 'importStaff'])->name('animes.anilist.cast.staff');
+    Route::post('animes/{anime}/translate', [App\Http\Controllers\AdminAnimeTranslateController::class, 'store'])->name('animes.translate');
 
     // Cast del anime (staff)
     Route::post('animes/{anime}/staff', [App\Http\Controllers\AdminAnimeController::class, 'attachStaff'])->name('animes.staff.attach');
@@ -108,6 +109,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::resource('users', App\Http\Controllers\AdminUserController::class)->only(['index', 'edit', 'update', 'destroy']);
 
     // Noticias
+    Route::post('news/expand', [App\Http\Controllers\AdminNewsAiController::class, 'expand'])->name('news.expand');
     Route::resource('news', App\Http\Controllers\AdminNewsController::class);
 
     // Episodios

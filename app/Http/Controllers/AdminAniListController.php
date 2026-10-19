@@ -5,12 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\Anime;
 use App\Models\Season;
 use App\Services\AniListService;
-use App\Services\GeminiTranslator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
+use App\Contracts\Translator;
 use RuntimeException;
 
 class AdminAniListController extends Controller
@@ -29,7 +29,7 @@ class AdminAniListController extends Controller
 
     public function __construct(
         private AniListService $anilist,
-        private GeminiTranslator $translator,
+        private Translator $translator,
     ) {
     }
 
@@ -154,7 +154,7 @@ class AdminAniListController extends Controller
         $message .= $skipped ? " ({$skipped} omitidos por ya existir)." : '.';
 
         if ($translationFailed) {
-            $message .= ' Las sinopsis quedaron en inglés: Gemini no está configurado o no respondió.';
+            $message .= ' Las sinopsis quedaron en inglés: el traductor no está configurado o no respondió.';
         }
 
         return redirect()->route('admin.seasons.anilist', $season)->with('status', $message);

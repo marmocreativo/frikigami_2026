@@ -68,6 +68,8 @@ class AdminNewsController extends Controller
             'animes'       => ['nullable', 'array'],
             'animes.*'     => ['nullable', 'distinct', 'exists:animes,id'],
             'published_at' => ['nullable', 'date'],
+            'meta_title'       => ['nullable', 'string', 'max:70'],
+            'meta_description' => ['nullable', 'string', 'max:200'],
         ]);
 
         if ($request->hasFile('cover_image')) {
@@ -107,6 +109,8 @@ class AdminNewsController extends Controller
             'animes'       => ['nullable', 'array'],
             'animes.*'     => ['nullable', 'distinct', 'exists:animes,id'],
             'published_at' => ['nullable', 'date'],
+            'meta_title'       => ['nullable', 'string', 'max:70'],
+            'meta_description' => ['nullable', 'string', 'max:200'],
         ]);
 
         if ($request->hasFile('cover_image')) {

@@ -12,6 +12,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
+use App\Contracts\Translator;
 use RuntimeException;
 
 class AdminAnimeCastSyncController extends Controller
@@ -41,8 +42,10 @@ class AdminAnimeCastSyncController extends Controller
         'Theme Song Performance' => 'Canción temática',
     ];
 
-    public function __construct(private AniListCastService $cast)
-    {
+    public function __construct(
+        private AniListCastService $cast,
+        private Translator $translator,
+    ) {
     }
 
     public function show(Anime $anime): View|RedirectResponse
@@ -83,7 +86,7 @@ class AdminAnimeCastSyncController extends Controller
      */
     public function importCharacters(Request $request, Anime $anime): RedirectResponse
     {
-        set_time_limit(300);
+        set_time_limit(600);
 
         $request->validate([
             'ids' => ['required', 'array', 'max:50'],
@@ -100,14 +103,18 @@ class AdminAnimeCastSyncController extends Controller
             return back()->withErrors(['ids' => 'No se pudo consultar AniList: ' . $e->getMessage()]);
         }
 
+        $selected = collect($request->input('ids'))
+            ->map(fn ($id) => $items->get((int) $id))
+            ->filter()
+            ->values();
+
         $stats = $this->emptyStats();
 
-        foreach ($request->input('ids') as $id) {
-            $item = $items->get((int) $id);
+        // Descripciones al español (solo las que se van a guardar), en una pasada
+        $translations = $this->translateMissing($selected, Character::class, 'description', $stats);
 
-            if (! $item) {
-                continue;
-            }
+        foreach ($selected as $item) {
+            $item['description'] = $translations[$item['anilist_id']] ?? $item['description'];
 
             $character = $this->findOrCreateCharacter($item, $stats);
 
@@ -135,7 +142,7 @@ class AdminAnimeCastSyncController extends Controller
      */
     public function importStaff(Request $request, Anime $anime): RedirectResponse
     {
-        set_time_limit(300);
+        set_time_limit(600);
 
         $request->validate([
             'ids' => ['required', 'array', 'max:50'],
@@ -152,14 +159,18 @@ class AdminAnimeCastSyncController extends Controller
             return back()->withErrors(['ids' => 'No se pudo consultar AniList: ' . $e->getMessage()]);
         }
 
+        $selected = collect($request->input('ids'))
+            ->map(fn ($id) => $items->get((int) $id))
+            ->filter()
+            ->values();
+
         $stats = $this->emptyStats();
 
-        foreach ($request->input('ids') as $id) {
-            $item = $items->get((int) $id);
+        // Biografías al español (solo las que se van a guardar), en una pasada
+        $translations = $this->translateMissing($selected, Person::class, 'bio', $stats);
 
-            if (! $item) {
-                continue;
-            }
+        foreach ($selected as $item) {
+            $item['description'] = $translations[$item['anilist_id']] ?? $item['description'];
 
             $person = $this->findOrCreatePerson($item, ['is_staff' => true], $stats);
 
@@ -340,7 +351,36 @@ class AdminAnimeCastSyncController extends Controller
             'people_linked' => 0,
             'attached' => 0,
             'voices' => 0,
+            'translation_failed' => false,
         ];
+    }
+
+    /**
+     * Traduce las descripciones de los registros que se van a crear o a completar.
+     * Devuelve [anilist_id => texto en español]; marca el fallo en $stats.
+     */
+    private function translateMissing(Collection $selected, string $model, string $column, array &$stats): array
+    {
+        $existing = $model::whereIn('anilist_id', $selected->pluck('anilist_id'))->get()->keyBy('anilist_id');
+
+        $texts = $selected
+            ->filter(fn ($item) => $item['description'] && ! $existing->get($item['anilist_id'])?->{$column})
+            ->mapWithKeys(fn ($item) => [$item['anilist_id'] => $item['description']])
+            ->all();
+
+        if ($texts === []) {
+            return [];
+        }
+
+        $translated = $this->translator->toSpanish($texts);
+
+        if ($translated === null) {
+            $stats['translation_failed'] = true;
+
+            return [];
+        }
+
+        return $translated;
     }
 
     private function summary(array $stats): string
@@ -366,6 +406,12 @@ class AdminAnimeCastSyncController extends Controller
             $parts[] = "{$stats['voices']} voces asignadas";
         }
 
-        return $parts ? 'Listo: ' . implode(', ', $parts) . '.' : 'No había nada nuevo que agregar.';
+        $message = $parts ? 'Listo: ' . implode(', ', $parts) . '.' : 'No había nada nuevo que agregar.';
+
+        if ($stats['translation_failed']) {
+            $message .= ' Las descripciones quedaron en inglés: el traductor no respondió.';
+        }
+
+        return $message;
     }
 }

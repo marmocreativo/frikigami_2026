@@ -4,9 +4,10 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use App\Contracts\Translator;
 use Throwable;
 
-class GeminiTranslator
+class GeminiTranslator implements Translator
 {
     private const ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent';
 
