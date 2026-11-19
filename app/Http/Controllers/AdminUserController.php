@@ -36,7 +36,7 @@ class AdminUserController extends Controller
 
         $user->update(['role' => $request->role]);
 
-        return redirect()->route('admin.users.index')
+        return redirect()->route('admin.usuarios.index')
             ->with('status', 'Rol actualizado correctamente.');
     }
 
@@ -48,7 +48,7 @@ class AdminUserController extends Controller
 
         $user->delete();
 
-        return redirect()->route('admin.users.index')
+        return redirect()->route('admin.usuarios.index')
             ->with('status', 'Usuario eliminado.');
     }
 }

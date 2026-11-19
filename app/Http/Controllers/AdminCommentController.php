@@ -18,7 +18,7 @@ class AdminCommentController extends Controller
         $animes = Anime::orderBy('title')->get(['id', 'title', 'slug']);
         $currentAnime = $animes->firstWhere('slug', $request->query('anime'));
 
-        $type = in_array($request->query('type'), ['news', 'episodes'], true)
+        $type = in_array($request->query('type'), ['news', 'episodes', 'animes'], true)
             ? $request->query('type')
             : null;
 
@@ -30,6 +30,7 @@ class AdminCommentController extends Controller
             ])
             ->when($type === 'news', fn ($query) => $query->where('commentable_type', News::class))
             ->when($type === 'episodes', fn ($query) => $query->where('commentable_type', Episode::class))
+            ->when($type === 'animes', fn ($query) => $query->where('commentable_type', Anime::class))
             ->when($currentAnime, fn ($query, $anime) => $query->where(fn ($q) => $q
                 ->whereHasMorph('commentable', [News::class], fn ($news) => $news
                     ->whereHas('animes', fn ($a) => $a->where('animes.id', $anime->id))
@@ -37,6 +38,7 @@ class AdminCommentController extends Controller
                 ->orWhereHasMorph('commentable', [Episode::class], fn ($episode) => $episode
                     ->whereHas('animeSeason', fn ($s) => $s->where('anime_id', $anime->id))
                 )
+                ->orWhereHasMorph('commentable', [Anime::class], fn ($a) => $a->where('animes.id', $anime->id))
             ))
             ->latest()
             ->paginate(20)

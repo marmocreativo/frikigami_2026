@@ -19,6 +19,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->app->bind(Translator::class, fn () => match (config('services.translator')) {
+            'gemini' => app(GeminiTranslator::class),
+            default => app(AnthropicTranslator::class),
+        });
+
         $this->app->bind(TextGenerator::class, fn () => match (config('services.ai_driver')) {
             'gemini' => app(GeminiTextGenerator::class),
             default => app(AnthropicTextGenerator::class),
@@ -31,6 +36,6 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         //
-        Route::bind('temporada', fn (string $value) => Season::fromSlug($value) ?? abort(404));
+        Route::bind('estreno', fn (string $value) => Season::fromSlug($value) ?? abort(404));
     }
 }

@@ -3,8 +3,9 @@
         <h1 class="text-2xl font-bold">Animes</h1>
         <div class="flex gap-2">
     @if (request('season'))
-        <a href="{{ route('admin.seasons.anilist', request('season')) }}" class="btn btn-outline btn-sm">Comparar con AniList</a>
+        <a href="{{ route('admin.estrenos.anilist', request('season')) }}" class="btn btn-outline btn-sm">Comparar con AniList</a>
     @endif
+    <a href="{{ route('admin.anilist.buscar', array_filter(['q' => request('q')])) }}" class="btn btn-outline btn-sm">Buscar en AniList</a>
     <a href="{{ route('admin.animes.create') }}" class="btn btn-primary btn-sm">+ Nuevo Anime</a>
 </div>
     </div>
@@ -58,6 +59,7 @@
             <table class="table table-zebra table-sm">
                 <thead>
                     <tr>
+                        <th class="w-14"></th>
                         <th>Título</th>
                         <th>Temporada</th>
                         <th>Estado</th>
@@ -70,6 +72,14 @@
 
                     @forelse ($animes as $anime)
                         <tr>
+                            <td>
+                                @if ($anime->cover_image)
+                                    <img src="{{ Storage::url($anime->cover_image) }}" alt="{{ $anime->title }}" loading="lazy"
+                                         class="w-10 h-14 object-cover rounded">
+                                @else
+                                    <div class="w-10 h-14 rounded bg-base-300 flex items-center justify-center text-base-content/30">?</div>
+                                @endif
+                            </td>
                             <td class="font-medium">{{ $anime->title }}</td>
                             <td>{{ $anime->season?->label ?? '—' }}</td>
                             <td>
@@ -98,14 +108,14 @@
                                     <ul id="rel-{{ $anime->id }}" popover
                                         class="dropdown dropdown-end menu menu-sm w-56 rounded-box bg-base-100 shadow-lg"
                                         style="position-anchor:--rel-{{ $anime->id }}">
-                                        <li><a href="{{ route('admin.news.index', ['anime' => $anime->slug]) }}">Noticias del anime</a></li>
-                                        <li><a href="{{ route('admin.news.create', ['anime' => $anime->slug]) }}">+ Nueva noticia de este anime</a></li>
+                                        <li><a href="{{ route('admin.noticias.index', ['anime' => $anime->slug]) }}">Noticias del anime</a></li>
+                                        <li><a href="{{ route('admin.noticias.create', ['anime' => $anime->slug]) }}">+ Nueva noticia de este anime</a></li>
                                         <li class="my-1 h-px bg-base-300" role="separator"></li>
-                                        <li><a href="{{ route('admin.anime-seasons.index', ['anime' => $anime->slug]) }}">Temporadas del anime</a></li>
-                                        <li><a href="{{ route('admin.episodes.index', ['anime' => $anime->slug]) }}">Episodios del anime</a></li>
-                                        <li><a href="{{ route('admin.characters.index', ['anime' => $anime->slug]) }}">Personajes del anime</a></li>
-                                        <li><a href="{{ route('admin.people.index', ['anime' => $anime->slug]) }}">Personas (cast) del anime</a></li>
-                                        <li><a href="{{ route('admin.comments.index', ['anime' => $anime->slug]) }}">Comentarios del anime</a></li>
+                                        <li><a href="{{ route('admin.temporadas.index', ['anime' => $anime->slug]) }}">Temporadas del anime</a></li>
+                                        <li><a href="{{ route('admin.episodios.index', ['anime' => $anime->slug]) }}">Episodios del anime</a></li>
+                                        <li><a href="{{ route('admin.personajes.index', ['anime' => $anime->slug]) }}">Personajes del anime</a></li>
+                                        <li><a href="{{ route('admin.personas.index', ['anime' => $anime->slug]) }}">Personas (cast) del anime</a></li>
+                                        <li><a href="{{ route('admin.comentarios.index', ['anime' => $anime->slug]) }}">Comentarios del anime</a></li>
                                     </ul>
 
                                     <a href="{{ route('animes.show', $anime) }}" class="btn btn-ghost btn-xs" target="_blank">Ver</a>
@@ -121,7 +131,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center text-base-content/60 py-8">No se encontraron animes.</td>
+                            <td colspan="6" class="text-center text-base-content/60 py-8">No se encontraron animes.</td>
                         </tr>
                     @endforelse
                 </tbody>

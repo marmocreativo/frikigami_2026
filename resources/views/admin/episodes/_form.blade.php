@@ -37,7 +37,27 @@
 </div>
 
 <div class="form-control">
-    <label class="label"><span class="label-text">Sinopsis</span></label>
+    <label class="label"><span class="label-text">Imagen previa</span></label>
+    @if (isset($episode) && $episode->thumbnail)
+        <img src="{{ $episode->thumbnail_url }}" alt="Imagen actual" class="w-full max-w-sm aspect-video object-cover rounded mb-2">
+    @endif
+    <input type="file" name="thumbnail" accept="image/jpeg,image/png,image/webp"
+           class="file-input file-input-bordered w-full @error('thumbnail') file-input-error @enderror">
+    <p class="text-xs text-base-content/60 mt-1">
+        Horizontal (16:9). JPG, PNG o WebP, máximo 4 MB.
+        @if (isset($episode) && $episode->thumbnail) Déjalo vacío para conservar la actual. @endif
+    </p>
+    @error('thumbnail')<span class="text-error text-sm mt-1">{{ $message }}</span>@enderror
+    @if (isset($episode) && $episode->thumbnail)
+        <label class="label cursor-pointer justify-start gap-2 mt-1">
+            <input type="checkbox" name="remove_thumbnail" value="1" class="checkbox checkbox-sm">
+            <span class="label-text">Quitar la imagen actual</span>
+        </label>
+    @endif
+</div>
+
+<div class="form-control">
+    <label class="label"><span class="label-text">Resumen</span></label>
     <textarea name="synopsis" rows="4"
               class="textarea textarea-bordered w-full @error('synopsis') textarea-error @enderror"
               placeholder="Opcional">{{ old('synopsis', $episode->synopsis ?? '') }}</textarea>

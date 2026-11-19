@@ -1,15 +1,12 @@
 <x-layouts.app title="Noticias">
     <x-container class="pt-28">
         <div class="flex items-center justify-between mb-6">
-            <form method="GET" action="{{ route('news.index') }}" class="mb-6">
+            <form method="GET" action="{{ route('noticias.index') }}" class="mb-6">
                 <label class="input w-full">
                     <input type="search" name="q" value="{{ request('q') }}" placeholder="Buscar noticias..." />
                 </label>
             </form>
             <h1 class="text-3xl font-bold">Noticias</h1>
-            @auth
-                <a href="#" class="btn btn-primary btn-sm">+ Nueva Noticia</a>
-            @endauth
         </div>
 
         @if ($news->isEmpty())
@@ -19,7 +16,7 @@
         @else
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                 @foreach ($news as $item)
-                    <a href="{{ route('news.show', $item) }}" class="hover:-translate-y-0.5 transition-all">
+                    <a href="{{ route('noticias.show', $item) }}" class="hover:-translate-y-0.5 transition-all">
                         <div class="relative rounded-box overflow-hidden">
                             @if ($item->cover_image)
                                 <img src="{{ Storage::url($item->cover_image) }}" alt="{{ $item->title }}" class="h-48 w-full object-cover">

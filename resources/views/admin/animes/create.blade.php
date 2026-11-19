@@ -8,7 +8,7 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         <form method="POST" action="{{ route('admin.animes.store') }}" enctype="multipart/form-data" class="contents">
-            @include('animes._form')
+            @include('admin.animes._form')
         </form>
     </div>
 </x-layouts.admin>

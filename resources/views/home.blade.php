@@ -1,6 +1,9 @@
 <x-layouts.app title="Inicio">
     <div class="space-y-14">
 
+        @if ($slides->isNotEmpty())
+            <x-home.slider :slides="$slides" />
+        @else
         {{-- Hero: ancho completo, 720px mínimo --}}
         <section class="relative w-full min-h-[720px] overflow-hidden">
             <img src="{{ asset('images/hero_bg_default.jpg') }}"
@@ -28,7 +31,7 @@
                                 {{ $latestNews->first()->user->name ?? 'Desconocido' }} · {{ $latestNews->first()->published_at->format('d/m/Y') }}
                             </p>
 
-                            <a href="{{ route('news.show', $latestNews->first()) }}" class="btn btn-primary mt-6">
+                            <a href="{{ route('noticias.show', $latestNews->first()) }}" class="btn btn-primary mt-6">
                                 Leer noticia
                             </a>
                         @else
@@ -40,6 +43,7 @@
                 </div>
             </div>
         </section>
+        @endif
 
         {{-- Resto del contenido: boxed --}}
         <x-container>
@@ -55,7 +59,7 @@
                                 $seasonAccents = ['bg-primary/10', 'bg-secondary/10'];
                             @endphp
                             @foreach ($seasons as $index => $season)
-                                <a href="{{ route('animes.season', $season->slug) }}"
+                                <a href="{{ route('animes.estreno', $season->slug) }}"
                                 class="card {{ $seasonAccents[$index % count($seasonAccents)] }} border-none hover:-translate-y-0.5 transition-all">
                                     <div class="card-body items-center justify-center text-center p-6">
                                         <p class="text-xl font-bold text-base-content">{{ $season->label }}</p>
@@ -70,7 +74,7 @@
                 <section>
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="text-3xl font-bold text-base-content">Últimas noticias</h2>
-                        <a href="{{ route('news.index') }}" class="btn btn-ghost btn-sm text-primary">Ver todas →</a>
+                        <a href="{{ route('noticias.index') }}" class="btn btn-ghost btn-sm text-primary">Ver todas →</a>
                     </div>
 
                     @if ($latestNews->isEmpty())
@@ -78,7 +82,7 @@
                     @else
                         <div class="grid grid-cols-1 sm:grid-cols-4 gap-6">
                             @foreach ($latestNews as $index => $news)
-                                <a href="{{ route('news.show', $news) }}"
+                                <a href="{{ route('noticias.show', $news) }}"
                                    class="{{ $index === 0 ? 'sm:col-span-2' : 'sm:col-span-1' }} hover:-translate-y-0.5 transition-all">
                                     <div class="relative rounded-box overflow-hidden">
                                         @if ($news->cover_image)

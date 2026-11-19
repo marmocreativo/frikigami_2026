@@ -1,7 +1,7 @@
 <x-layouts.admin title="Géneros">
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-2xl font-bold">Géneros</h1>
-        <a href="{{ route('admin.genres.create') }}" class="btn btn-primary btn-sm">+ Nuevo Género</a>
+        <a href="{{ route('admin.generos.create') }}" class="btn btn-primary btn-sm">+ Nuevo Género</a>
     </div>
 
     @include('admin.partials.alert')
@@ -25,8 +25,8 @@
                             <td>{{ $genre->animes_count }}</td>
                             <td>
                                 <div class="flex gap-2 justify-end">
-                                    <a href="{{ route('admin.genres.edit', $genre) }}" class="btn btn-outline btn-xs">Editar</a>
-                                    <form method="POST" action="{{ route('admin.genres.destroy', $genre) }}" onsubmit="return confirm('¿Eliminar este género?');">
+                                    <a href="{{ route('admin.generos.edit', $genre) }}" class="btn btn-outline btn-xs">Editar</a>
+                                    <form method="POST" action="{{ route('admin.generos.destroy', $genre) }}" onsubmit="return confirm('¿Eliminar este género?');">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-error btn-xs btn-outline">Eliminar</button>

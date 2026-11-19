@@ -8,6 +8,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 use App\Models\Anime;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AdminPersonController extends Controller
 {
@@ -16,25 +17,54 @@ class AdminPersonController extends Controller
         $animes = Anime::orderBy('title')->get(['id', 'title', 'slug']);
         $currentAnime = $animes->firstWhere('slug', $request->query('anime'));
 
-        $people = Person::query()
-            ->when($currentAnime, fn ($query, $anime) => $query
-                // Staff (anime_person) o actor de voz (character_person) de este anime
-                ->where(fn ($q) => $q
-                    ->whereHas('animes', fn ($a) => $a->where('animes.id', $anime->id))
-                    ->orWhereHas('characters', fn ($c) => $c->where('character_person.anime_id', $anime->id))
-                )
-                // Solo el rol y los personajes que corresponden a este anime
-                ->with([
-                    'animes' => fn ($a) => $a->where('animes.id', $anime->id),
-                    'characters' => fn ($c) => $c->wherePivot('anime_id', $anime->id),
-                ])
-            )
-            ->when($request->query('q'), fn ($query, $q) => $query->where('name', 'like', "%{$q}%"))
-            ->orderBy('name')
-            ->paginate(20)
+        $term = $request->query('q');
+        $byName = fn ($query) => $query->when($term, fn ($q) => $q->where('people.name', 'like', "%{$term}%"));
+
+        // Agrupadas por anime: staff (anime_person) y actores de voz (character_person)
+        $groups = Anime::with('season')
+            ->where(fn ($query) => $query
+                ->whereHas('staff', $byName)
+                ->orWhereHas('voiceActors', $byName))
+            ->when($currentAnime, fn ($query, $anime) => $query->where('id', $anime->id))
+            ->orderBy('title')
+            ->paginate(10)
             ->withQueryString();
 
-        return view('admin.people.index', compact('people', 'animes', 'currentAnime'));
+        $animeIds = $groups->pluck('id');
+
+        $staffRows = DB::table('anime_person')->whereIn('anime_id', $animeIds)
+            ->get(['anime_id', 'person_id', 'role']);
+        $voiceRows = DB::table('character_person')
+            ->join('characters', 'characters.id', '=', 'character_person.character_id')
+            ->whereIn('character_person.anime_id', $animeIds)
+            ->get(['character_person.anime_id', 'character_person.person_id', 'characters.name as character']);
+
+        $peopleById = $byName(Person::query())
+            ->whereIn('id', $staffRows->pluck('person_id')->merge($voiceRows->pluck('person_id'))->unique())
+            ->get()->keyBy('id');
+
+        // entries[anime_id] = [person_id => ['person', 'roles', 'characters']]
+        $entries = [];
+        foreach ($staffRows as $row) {
+            if ($person = $peopleById->get($row->person_id)) {
+                $entries[$row->anime_id][$row->person_id]['person'] = $person;
+                $entries[$row->anime_id][$row->person_id]['roles'][] = $row->role ?: 'Staff';
+            }
+        }
+        foreach ($voiceRows as $row) {
+            if ($person = $peopleById->get($row->person_id)) {
+                $entries[$row->anime_id][$row->person_id]['person'] = $person;
+                $entries[$row->anime_id][$row->person_id]['characters'][] = $row->character;
+            }
+        }
+        $entries = collect($entries)->map(fn ($list) => collect($list)->sortBy(fn ($e) => $e['person']->name));
+
+        // Personas sin anime: para que nunca queden fuera del listado
+        $orphans = (! $currentAnime && ! $groups->hasMorePages())
+            ? $byName(Person::doesntHave('animes')->doesntHave('characters'))->orderBy('name')->get()
+            : collect();
+
+        return view('admin.people.index', compact('groups', 'entries', 'orphans', 'animes', 'currentAnime'));
     }
 
     public function create(): View
@@ -52,13 +82,13 @@ class AdminPersonController extends Controller
 
         Person::create($data);
 
-        return redirect()->route('admin.people.index')
+        return redirect()->route('admin.personas.index')
             ->with('status', 'Persona creada correctamente.');
     }
 
     public function show(Person $person): RedirectResponse
     {
-        return redirect()->route('people.show', $person);
+        return redirect()->route('personas.show', $person);
     }
 
     public function edit(Person $person): View
@@ -76,7 +106,7 @@ class AdminPersonController extends Controller
 
         $person->update($data);
 
-        return redirect()->route('admin.people.index')
+        return redirect()->route('admin.personas.index')
             ->with('status', 'Persona actualizada correctamente.');
     }
 
@@ -84,7 +114,7 @@ class AdminPersonController extends Controller
     {
         $person->delete();
 
-        return redirect()->route('admin.people.index')
+        return redirect()->route('admin.personas.index')
             ->with('status', 'Persona eliminada.');
     }
 }

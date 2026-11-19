@@ -21,6 +21,11 @@ class Season extends Model
         return $this->hasMany(Anime::class);
     }
 
+    public function animeSeasons(): HasMany
+    {
+        return $this->hasMany(AnimeSeason::class);
+    }
+
     public function getLabelAttribute(): string
     {
         return "{$this->name} {$this->year}";

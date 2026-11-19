@@ -28,17 +28,6 @@
                 </div>
 
                 <p class="text-base-content/80">{{ $person->bio ?: 'Sin biografía disponible.' }}</p>
-
-                @auth
-                    <div class="flex gap-2 mt-4">
-                        <a href="{{ route('people.edit', $person) }}" class="btn btn-sm btn-outline">Editar</a>
-                        <form method="POST" action="{{ route('people.destroy', $person) }}" onsubmit="return confirm('¿Eliminar esta persona?');">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-sm btn-error btn-outline">Eliminar</button>
-                        </form>
-                    </div>
-                @endauth
             </div>
         </div>
 
@@ -47,7 +36,7 @@
                 <h2 class="text-xl font-bold mb-3">Personajes interpretados</h2>
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     @foreach ($person->characters as $character)
-                        <a href="{{ route('characters.show', $character) }}" class="card bg-base-100 shadow-sm p-3 text-center">
+                        <a href="{{ route('personajes.show', $character) }}" class="card bg-base-100 shadow-sm p-3 text-center">
                             <span class="text-sm font-medium">{{ $character->name }}</span>
                         </a>
                     @endforeach

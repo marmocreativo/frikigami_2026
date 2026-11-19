@@ -5,7 +5,7 @@
             <h1 class="text-2xl font-bold">{{ $season->label }} · AniList</h1>
         </div>
 
-        <form method="POST" action="{{ route('admin.seasons.anilist.refresh', $season) }}">
+        <form method="POST" action="{{ route('admin.estrenos.anilist.actualizar', $season) }}">
             @csrf
             <button type="submit" class="btn btn-outline btn-sm">Actualizar desde AniList</button>
         </form>
@@ -25,7 +25,7 @@
         </div>
     @else
         {{-- Filtro de formatos --}}
-        <form method="GET" action="{{ route('admin.seasons.anilist', $season) }}" class="card bg-base-100 shadow-sm mb-4">
+        <form method="GET" action="{{ route('admin.estrenos.anilist', $season) }}" class="card bg-base-100 shadow-sm mb-4">
             <div class="card-body p-4 flex-row flex-wrap items-center gap-4">
                 <span class="text-sm font-medium">Formatos:</span>
                 @foreach ($formatLabels as $value => $label)
@@ -48,6 +48,7 @@
                     <div class="flex gap-2">
                         <span class="badge badge-success badge-sm">Vinculados {{ $counts['linked'] }}</span>
                         <span class="badge badge-info badge-sm">Posibles {{ $counts['possible'] }}</span>
+                        <span class="badge badge-secondary badge-sm">Continuaciones {{ $counts['continuation'] }}</span>
                         <span class="badge badge-error badge-sm">Faltan {{ $counts['missing'] }}</span>
                     </div>
                 </div>
@@ -58,17 +59,17 @@
         </div>
 
         {{-- Formulario de importación (los checkboxes de la tabla se asocian con form="import-form") --}}
-        <form id="import-form" method="POST" action="{{ route('admin.seasons.anilist.import', $season) }}">
+        <form id="import-form" method="POST" action="{{ route('admin.estrenos.anilist.importar', $season) }}">
             @csrf
         </form>
 
         <div class="card bg-base-100 shadow-sm">
-            @if ($counts['missing'] > 0)
+            @if ($counts['missing'] + $counts['continuation'] > 0)
                 <div class="flex flex-wrap items-center justify-between gap-2 p-4 pb-0">
                     <label class="flex items-center gap-2 cursor-pointer text-sm">
                         <input type="checkbox" class="checkbox checkbox-sm"
                                onclick="const on = this.checked; [...document.querySelectorAll('.import-checkbox')].slice(0, 15).forEach(c => c.checked = on)">
-                        Seleccionar faltantes (máx. 15 por vez)
+                        Seleccionar faltantes y continuaciones (máx. 15 por vez)
                     </label>
                     <button type="submit" form="import-form" class="btn btn-primary btn-sm">Importar seleccionados</button>
                 </div>
@@ -92,7 +93,7 @@
                             @php $item = $row['item']; @endphp
                             <tr>
                                 <td>
-                                    @if ($row['state'] === 'missing')
+                                    @if (in_array($row['state'], ['missing', 'continuation'], true))
                                         <input type="checkbox" form="import-form" name="ids[]" value="{{ $item['anilist_id'] }}"
                                                class="checkbox checkbox-sm import-checkbox">
                                     @endif
@@ -118,14 +119,26 @@
                                 <td>
                                     @if ($row['state'] === 'linked')
                                         <span class="badge badge-success badge-sm">Cargado</span>
-                                        @if ($row['anime']->season_id !== $season->id)
-                                            <span class="badge badge-warning badge-xs">Otra temporada</span>
+                                        @php $estrenoId = $row['temporada']?->season_id ?? $row['anime']->season_id; @endphp
+                                        @if ($estrenoId !== $season->id)
+                                            <span class="badge badge-warning badge-xs">Otro estreno</span>
+                                        @endif
+                                        @if ($row['temporada'])
+                                            <div class="text-xs text-base-content/60 mt-1">{{ $row['anime']->title }} · Temporada {{ $row['temporada']->number }}</div>
                                         @endif
                                     @elseif ($row['state'] === 'possible')
                                         <span class="badge badge-info badge-sm">Posible</span>
                                         <div class="text-xs text-base-content/60 mt-1">{{ $row['anime']->title }}</div>
+                                    @elseif ($row['state'] === 'continuation')
+                                        <span class="badge badge-secondary badge-sm">Continuación</span>
+                                        <div class="text-xs text-base-content/60 mt-1">
+                                            Se agregará como temporada de <strong>{{ $row['anime']->title }}</strong>
+                                        </div>
                                     @else
                                         <span class="badge badge-error badge-sm">Falta</span>
+                                        @if ($item['prequel_id'])
+                                            <div class="text-xs text-warning mt-1">Es continuación, pero su precuela no está en tu base. Impórtala primero.</div>
+                                        @endif
                                     @endif
                                 </td>
                                 <td>
@@ -133,7 +146,7 @@
                                         @if ($row['state'] === 'linked')
                                             <a href="{{ route('admin.animes.edit', $row['anime']) }}" class="btn btn-ghost btn-xs">Editar</a>
                                         @elseif ($row['state'] === 'possible')
-                                            <form method="POST" action="{{ route('admin.seasons.anilist.link', $season) }}">
+                                            <form method="POST" action="{{ route('admin.estrenos.anilist.vincular', $season) }}">
                                                 @csrf
                                                 <input type="hidden" name="anime_id" value="{{ $row['anime']->id }}">
                                                 <input type="hidden" name="anilist_id" value="{{ $item['anilist_id'] }}">

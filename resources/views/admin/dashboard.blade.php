@@ -6,19 +6,19 @@
             <div class="stat-title">Animes</div>
             <div class="stat-value text-2xl">{{ \App\Models\Anime::count() }}</div>
         </a>
-        <a href="{{ route('admin.news.index') }}" class="stat bg-base-100 shadow-sm rounded-box hover:shadow-md transition-shadow">
+        <a href="{{ route('admin.noticias.index') }}" class="stat bg-base-100 shadow-sm rounded-box hover:shadow-md transition-shadow">
             <div class="stat-title">Noticias</div>
             <div class="stat-value text-2xl">{{ \App\Models\News::count() }}</div>
         </a>
-        <a href="{{ route('admin.episodes.index') }}" class="stat bg-base-100 shadow-sm rounded-box hover:shadow-md transition-shadow">
+        <a href="{{ route('admin.episodios.index') }}" class="stat bg-base-100 shadow-sm rounded-box hover:shadow-md transition-shadow">
             <div class="stat-title">Episodios</div>
             <div class="stat-value text-2xl">{{ \App\Models\Episode::count() }}</div>
         </a>
-        <a href="{{ route('admin.people.index') }}" class="stat bg-base-100 shadow-sm rounded-box hover:shadow-md transition-shadow">
+        <a href="{{ route('admin.personas.index') }}" class="stat bg-base-100 shadow-sm rounded-box hover:shadow-md transition-shadow">
             <div class="stat-title">Personas</div>
             <div class="stat-value text-2xl">{{ \App\Models\Person::count() }}</div>
         </a>
-        <a href="{{ route('admin.characters.index') }}" class="stat bg-base-100 shadow-sm rounded-box hover:shadow-md transition-shadow">
+        <a href="{{ route('admin.personajes.index') }}" class="stat bg-base-100 shadow-sm rounded-box hover:shadow-md transition-shadow">
             <div class="stat-title">Personajes</div>
             <div class="stat-value text-2xl">{{ \App\Models\Character::count() }}</div>
         </a>

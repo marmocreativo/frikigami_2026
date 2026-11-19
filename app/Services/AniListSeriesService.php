@@ -54,7 +54,7 @@ class AniListSeriesService
     private const SCHEDULE_QUERY = <<<'GRAPHQL'
         query ($id: Int, $page: Int) {
         Media(id: $id, type: ANIME) {
-            streamingEpisodes { title }
+            streamingEpisodes { title thumbnail }
             airingSchedule(page: $page, perPage: 50) {
             pageInfo { hasNextPage }
             nodes { episode airingAt }
@@ -73,6 +73,17 @@ class AniListSeriesService
         return array_map(fn ($media) => $this->normalize($media), $data['Page']['media']);
     }
 
+    /**
+     * Imágenes previas de episodios de los enlaces de streaming: [número => url].
+     * Una sola petición (sirve de respaldo cuando Kitsu no trae imágenes).
+     */
+    public function streamingThumbnails(int $id): array
+    {
+        $media = $this->query(self::SCHEDULE_QUERY, ['id' => $id, 'page' => 1])['Media'];
+
+        return $this->parseStreamingThumbnails($media['streamingEpisodes'] ?? []);
+    }
+
     public function find(int $id): array
     {
         return $this->normalize($this->query(self::MEDIA_QUERY, ['id' => $id])['Media']);
@@ -86,6 +97,7 @@ class AniListSeriesService
     {
         $episodes = [];
         $streamingTitles = [];
+        $streamingThumbs = [];
         $page = 1;
 
         do {
@@ -94,6 +106,7 @@ class AniListSeriesService
 
             if ($page === 1) {
                 $streamingTitles = $this->parseStreamingTitles($media['streamingEpisodes'] ?? []);
+                $streamingThumbs = $this->parseStreamingThumbnails($media['streamingEpisodes'] ?? []);
             }
 
             foreach ($schedule['nodes'] as $node) {
@@ -103,6 +116,7 @@ class AniListSeriesService
                     'number' => $number,
                     'title' => $streamingTitles[$number] ?? null,
                     'synopsis' => null,
+                    'thumbnail' => $streamingThumbs[$number] ?? null,
                     'air_date' => \Carbon\Carbon::createFromTimestamp($node['airingAt'], 'Asia/Tokyo')->toDateString(),
                 ];
             }
@@ -121,6 +135,7 @@ class AniListSeriesService
                 'number' => $number,
                 'title' => $title,
                 'synopsis' => null,
+                'thumbnail' => $streamingThumbs[$number] ?? null,
                 'air_date' => null,
             ];
         }
@@ -225,6 +240,25 @@ class AniListSeriesService
         }
 
         return $titles;
+    }
+
+    /**
+     * "Episode 3 - Title" + thumbnail → [3 => 'https://...jpg']
+     */
+    private function parseStreamingThumbnails(array $streamingEpisodes): array
+    {
+        $thumbs = [];
+
+        foreach ($streamingEpisodes as $item) {
+            if (
+                ! empty($item['thumbnail'])
+                && preg_match('/^(?:episode|ep\.?|e)\s*(\d+)\b/i', trim($item['title'] ?? ''), $m)
+            ) {
+                $thumbs[(int) $m[1]] ??= $item['thumbnail'];
+            }
+        }
+
+        return $thumbs;
     }
 
     private function normalize(array $media): array

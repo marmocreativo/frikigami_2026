@@ -9,17 +9,14 @@ class SeasonSeeder extends Seeder
 {
     public function run(): void
     {
-        $seasons = [
-            ['name' => 'Invierno', 'year' => 2025],
-            ['name' => 'Primavera', 'year' => 2025],
-            ['name' => 'Verano',    'year' => 2025],
-            ['name' => 'Otoño',     'year' => 2025],
+        $estrenos = [
+            ['name' => 'Otoño', 'year' => 2026],
             ['name' => 'Invierno', 'year' => 2026],
-            ['name' => 'Primavera', 'year' => 2026],
+            ['name' => 'Primavera', 'year' => 2027],
         ];
 
-        foreach ($seasons as $season) {
-            Season::create($season);
+        foreach ($estrenos as $estreno) {
+            Season::firstOrCreate($estreno);
         }
     }
 }

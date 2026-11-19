@@ -31,21 +31,23 @@ class AnimeController extends Controller
         return view('animes.index', compact('animes', 'genres', 'seasons'));
     }
 
-    public function season(Season $temporada): View
+    public function estreno(Season $estreno): View
     {
         $animes = $this->catalogQuery()
-            ->where('season_id', $temporada->id)
+            ->where(fn ($q) => $q->where('season_id', $estreno->id)
+                ->orWhereHas('animeSeasons', fn ($t) => $t->where('season_id', $estreno->id)))
+            ->with(['animeSeasons' => fn ($t) => $t->where('season_id', $estreno->id)])
             ->paginate(12)->withQueryString();
 
         return view('animes.index', [
             'animes' => $animes,
             'genres' => Genre::orderBy('name')->get(),
             'seasons' => Season::orderByDesc('year')->orderBy('name')->get(),
-            'activeSeason' => $temporada,
+            'activeSeason' => $estreno,
         ]);
     }
 
-    public function genre(Genre $genre): View
+    public function genero(Genre $genre): View
     {
         $animes = $this->catalogQuery()
             ->whereHas('genres', fn ($q) => $q->where('genres.id', $genre->id))
@@ -63,21 +65,54 @@ class AnimeController extends Controller
     {
         // Compatibilidad con los links viejos ?tab=
         $legacy = [
-            'cast' => 'animes.cast',
-            'characters' => 'animes.characters',
-            'episodes' => 'animes.episodes',
-            'news' => 'animes.news',
+            'cast' => 'animes.reparto',
+            'characters' => 'animes.personajes',
+            'episodes' => 'animes.episodios',
+            'news' => 'animes.noticias',
         ];
         if (isset($legacy[request('tab')])) {
             return redirect()->route($legacy[request('tab')], $anime, 301);
         }
 
-        $anime->load('season', 'genres')->loadCount(['episodes', 'animeSeasons']);
+        $anime->load('season', 'genres')->loadCount(['episodes', 'animeSeasons', 'characters', 'staff']);
 
-        return $this->renderTab('animes.show', $anime);
+        // Muestras para la ficha; cada una enlaza a su página completa
+        $temporadas = $anime->animeSeasons()->with('season')->withCount('episodes')->orderBy('number')->get();
+
+        $staffSample = $anime->staff()->orderBy('people.name')->take(6)->get();
+
+        $charactersSample = $anime->characters()
+            ->with(['voiceActors' => fn ($q) => $q->wherePivot('anime_id', $anime->id)])
+            ->orderBy('characters.name')
+            ->take(6)
+            ->get();
+
+        // Últimos episodios: temporada más reciente primero
+        $episodesSample = $anime->episodes()
+            ->with('animeSeason')
+            ->orderByDesc('anime_seasons.number')
+            ->orderByDesc('episodes.number')
+            ->take(5)
+            ->get();
+
+        $newsSample = $anime->news()->published()->with('user')->latest('published_at')->take(3)->get();
+        $newsCount = $anime->news()->published()->count();
+
+        return $this->renderTab('animes.show', $anime, compact(
+            'temporadas', 'staffSample', 'charactersSample', 'episodesSample', 'newsSample', 'newsCount'
+        ));
     }
 
-    public function cast(Anime $anime): View
+    public function temporadas(Anime $anime): View
+    {
+        $anime->load('season', 'genres');
+
+        $temporadas = $anime->animeSeasons()->with('season')->withCount('episodes')->orderBy('number')->get();
+
+        return $this->renderTab('animes.temporadas', $anime, compact('temporadas'));
+    }
+
+    public function reparto(Anime $anime): View
     {
         $anime->load([
             'season', 'genres', 'staff',
@@ -87,7 +122,7 @@ class AnimeController extends Controller
         return $this->renderTab('animes.cast', $anime);
     }
 
-    public function characters(Anime $anime): View
+    public function personajes(Anime $anime): View
     {
         $anime->load([
             'season', 'genres',
@@ -97,14 +132,33 @@ class AnimeController extends Controller
         return $this->renderTab('animes.characters', $anime);
     }
 
-    public function episodes(Anime $anime): View
+    public function episodios(Anime $anime): View
     {
         $anime->load('season', 'genres', 'animeSeasons.episodes');
 
         return $this->renderTab('animes.episodes', $anime);
     }
 
-    public function news(Anime $anime): View
+    public function temporada(Anime $anime, int $numero): View
+    {
+        $anime->load('season', 'genres');
+
+        $temporada = $anime->animeSeasons()->with('episodes')->where('number', $numero)->firstOrFail();
+
+        return $this->renderTab('animes.temporada', $anime, compact('temporada'));
+    }
+
+    public function episodio(Anime $anime, int $numero, int $episodio): View
+    {
+        $anime->load('season', 'genres');
+
+        $temporada = $anime->animeSeasons()->where('number', $numero)->firstOrFail();
+        $episodio = $temporada->episodes()->where('number', $episodio)->firstOrFail();
+
+        return $this->renderTab('animes.episodio', $anime, compact('temporada', 'episodio'));
+    }
+
+    public function noticias(Anime $anime): View
     {
         $anime->load('season', 'genres');
 
@@ -131,60 +185,5 @@ class AnimeController extends Controller
             ->get();
 
         return view($view, array_merge(compact('anime', 'sameSeason', 'sameGenre'), $data));
-    }
-
-    public function create(): View
-    {
-        $genres = Genre::orderBy('name')->get();
-        $seasons = Season::orderByDesc('year')->orderBy('name')->get();
-
-        return view('animes.create', compact('genres', 'seasons'));
-    }
-
-    public function store(StoreAnimeRequest $request): RedirectResponse
-    {
-        $data = $request->validated();
-
-        if ($request->hasFile('cover_image')) {
-            $data['cover_image'] = $request->file('cover_image')->store('animes', 'public');
-        }
-
-        $anime = Anime::create($data);
-        $anime->genres()->sync($data['genres'] ?? []);
-
-        return redirect()->route('animes.show', $anime)
-            ->with('status', 'Anime creado correctamente.');
-    }
-
-    public function edit(Anime $anime): View
-    {
-        $genres = Genre::orderBy('name')->get();
-        $seasons = Season::orderByDesc('year')->orderBy('name')->get();
-        $anime->load('genres');
-
-        return view('animes.edit', compact('anime', 'genres', 'seasons'));
-    }
-
-    public function update(StoreAnimeRequest $request, Anime $anime): RedirectResponse
-    {
-        $data = $request->validated();
-
-        if ($request->hasFile('cover_image')) {
-            $data['cover_image'] = $request->file('cover_image')->store('animes', 'public');
-        }
-
-        $anime->update($data);
-        $anime->genres()->sync($data['genres'] ?? []);
-
-        return redirect()->route('animes.show', $anime)
-            ->with('status', 'Anime actualizado correctamente.');
-    }
-
-    public function destroy(Anime $anime): RedirectResponse
-    {
-        $anime->delete();
-
-        return redirect()->route('animes.index')
-            ->with('status', 'Anime eliminado.');
     }
 }

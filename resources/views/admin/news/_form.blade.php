@@ -221,7 +221,7 @@
             suggestion.classList.add('hidden');
 
             try {
-                const response = await fetch('{{ route('admin.news.expand') }}', {
+                const response = await fetch('{{ route('admin.noticias.expandir') }}', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

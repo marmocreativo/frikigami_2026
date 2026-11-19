@@ -5,7 +5,7 @@
         <div class="card-body">
             <h2 class="card-title text-base mb-3">Agregar personaje</h2>
 
-            <form method="POST" action="{{ route('admin.animes.characters.attach', $anime) }}" class="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+            <form method="POST" action="{{ route('admin.animes.personajes.adjuntar', $anime) }}" class="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
                 @csrf
                 <div class="form-control">
                     <label class="label"><span class="label-text">Personaje</span></label>
@@ -48,7 +48,7 @@
                                         @foreach ($character->voiceActors as $va)
                                             <div class="flex items-center gap-1 text-sm text-base-content/70">
                                                 <span>🎙 {{ $va->name }}</span>
-                                                <form method="POST" action="{{ route('admin.animes.voiceactor.detach', [$anime, $character, $va]) }}">
+                                                <form method="POST" action="{{ route('admin.animes.actor_voz.quitar', [$anime, $character, $va]) }}">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="btn btn-xs btn-ghost text-error">✕</button>
@@ -63,7 +63,7 @@
 
                             <div class="flex gap-2 items-center">
                                 {{-- Agregar seiyuu --}}
-                                <form method="POST" action="{{ route('admin.animes.voiceactor.attach', [$anime, $character]) }}" class="flex gap-2">
+                                <form method="POST" action="{{ route('admin.animes.actor_voz.adjuntar', [$anime, $character]) }}" class="flex gap-2">
                                     @csrf
                                     <select name="person_id" class="select select-bordered select-xs">
                                         <option value="">+ Seiyuu</option>
@@ -75,7 +75,7 @@
                                 </form>
 
                                 {{-- Quitar personaje --}}
-                                <form method="POST" action="{{ route('admin.animes.characters.detach', [$anime, $character]) }}">
+                                <form method="POST" action="{{ route('admin.animes.personajes.quitar', [$anime, $character]) }}">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-xs btn-error btn-outline"

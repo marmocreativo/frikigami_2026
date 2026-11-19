@@ -25,7 +25,7 @@ class KitsuService
             return [];
         }
 
-        $key = "kitsu.episodes.{$kitsuId}";
+        $key = "kitsu.episodes.v2.{$kitsuId}";
 
         if (($cached = Cache::get($key)) !== null) {
             return $cached;
@@ -47,7 +47,7 @@ class KitsuService
             $kitsuId = Cache::get($this->idCacheKey($site, $externalId));
 
             if ($kitsuId) {
-                Cache::forget("kitsu.episodes.{$kitsuId}");
+                Cache::forget("kitsu.episodes.v2.{$kitsuId}");
             }
         }
     }
@@ -136,6 +136,7 @@ class KitsuService
                     'number' => $number,
                     'title' => $title ?: null,
                     'synopsis' => ($attributes['synopsis'] ?? null) ?: ($attributes['description'] ?? null),
+                    'thumbnail' => $attributes['thumbnail']['original'] ?? null,
                     'air_date' => ! empty($attributes['airdate']) ? substr($attributes['airdate'], 0, 10) : null,
                 ];
             }

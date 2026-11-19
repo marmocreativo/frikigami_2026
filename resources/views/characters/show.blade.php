@@ -24,20 +24,6 @@
                 <p class="text-base text-base-content/70 mt-3">
                     {{ $character->description ?: 'Sin descripción disponible.' }}
                 </p>
-
-                @auth
-                    @if (auth()->user()->isAdmin())
-                        <div class="flex gap-2 mt-4">
-                            <a href="{{ route('admin.characters.edit', $character) }}" class="btn btn-sm btn-outline">Editar</a>
-                            <form method="POST" action="{{ route('admin.characters.destroy', $character) }}"
-                                  onsubmit="return confirm('¿Eliminar este personaje?');">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-sm btn-error btn-outline">Eliminar</button>
-                            </form>
-                        </div>
-                    @endif
-                @endauth
             </div>
         </div>
 
@@ -61,7 +47,7 @@
                                 @if ($actors->isNotEmpty())
                                     <div class="mt-1 space-y-1">
                                         @foreach ($actors as $person)
-                                            <a href="{{ route('people.show', $person) }}"
+                                            <a href="{{ route('personas.show', $person) }}"
                                                class="block text-sm text-base-content/60 hover:text-base-content">
                                                 Voz: {{ $person->name }}
                                             </a>

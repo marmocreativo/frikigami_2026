@@ -2,14 +2,16 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasRatings;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Support\Facades\Storage;
 
 class Episode extends Model
 {
-    use HasFactory;
+    use HasFactory, HasRatings;
 
     protected $fillable = [
         'anime_season_id',
@@ -17,12 +19,19 @@ class Episode extends Model
         'number',
         'title',
         'synopsis',
+        'thumbnail',
         'air_date',
     ];
 
     protected $casts = [
         'air_date' => 'date',
     ];
+
+    /** Imagen previa del episodio, o null si no tiene. */
+    public function getThumbnailUrlAttribute(): ?string
+    {
+        return $this->thumbnail ? Storage::url($this->thumbnail) : null;
+    }
 
     public function animeSeason(): BelongsTo
     {
@@ -34,8 +43,4 @@ class Episode extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function comments(): MorphMany
-    {
-        return $this->morphMany(Comment::class, 'commentable');
-    }
 }

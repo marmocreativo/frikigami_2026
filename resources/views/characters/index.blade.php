@@ -2,7 +2,7 @@
     <x-container class="pt-28">
         <h1 class="text-3xl font-bold mb-6">Personajes</h1>
 
-        <form method="GET" action="{{ route('characters.index') }}" class="mb-6">
+        <form method="GET" action="{{ route('personajes.index') }}" class="mb-6">
             <label class="input w-full">
                 <input type="search" name="q" value="{{ request('q') }}" placeholder="Buscar personajes..." />
             </label>
@@ -13,7 +13,7 @@
         @else
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
                 @foreach ($characters as $character)
-                    <a href="{{ route('characters.show', $character) }}"
+                    <a href="{{ route('personajes.show', $character) }}"
                        class="card bg-base-100 shadow-sm hover:shadow-md transition-shadow">
                         <figure class="pt-4">
                             @if ($character->photo)

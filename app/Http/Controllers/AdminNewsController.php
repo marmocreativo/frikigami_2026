@@ -83,13 +83,13 @@ class AdminNewsController extends Controller
         $news->animes()->sync($this->animeIds($data));
 
         return redirect()
-            ->route('admin.news.index', array_filter(['anime' => $request->input('return_anime')]))
+            ->route('admin.noticias.index', array_filter(['anime' => $request->input('return_anime')]))
             ->with('status', 'Noticia creada correctamente.');
     }
 
     public function show(News $news): RedirectResponse
     {
-        return redirect()->route('news.show', $news);
+        return redirect()->route('noticias.show', $news);
     }
 
     public function edit(News $news): View
@@ -122,7 +122,7 @@ class AdminNewsController extends Controller
         $news->update($data);
         $news->animes()->sync($this->animeIds($data));
 
-        return redirect()->route('admin.news.index')
+        return redirect()->route('admin.noticias.index')
             ->with('status', 'Noticia actualizada correctamente.');
     }
 
@@ -130,7 +130,7 @@ class AdminNewsController extends Controller
     {
         $news->delete();
 
-        return redirect()->route('admin.news.index')
+        return redirect()->route('admin.noticias.index')
             ->with('status', 'Noticia eliminada.');
     }
 

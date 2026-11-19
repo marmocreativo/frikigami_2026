@@ -29,11 +29,18 @@ class AniListService
               idMal
               format
               status
+              genres
               episodes
               title { romaji english native }
               synonyms
               description(asHtml: false)
               coverImage { extraLarge large }
+              relations {
+                edges {
+                  relationType
+                  node { id type }
+                }
+              }
             }
           }
         }
@@ -49,6 +56,49 @@ class AniListService
             now()->addHours(6),
             fn () => $this->fetchSeason($this->enumFor($season), $season->year)
         );
+    }
+
+    private const MEDIA_QUERY = <<<'GRAPHQL'
+        query ($id: Int) {
+          Media(id: $id, type: ANIME) {
+            id
+            idMal
+            format
+            status
+            genres
+            episodes
+            season
+            seasonYear
+            startDate { year month }
+            title { romaji english native }
+            synonyms
+            description(asHtml: false)
+            coverImage { extraLarge large }
+            relations {
+              edges {
+                relationType
+                node { id type }
+              }
+            }
+          }
+        }
+        GRAPHQL;
+
+    /**
+     * Datos completos de una entrada (sinopsis, portada, estreno...).
+     */
+    public function media(int $id): array
+    {
+        $response = Http::acceptJson()
+            ->timeout(20)
+            ->retry(3, 2000, throw: false)
+            ->post(self::ENDPOINT, ['query' => self::MEDIA_QUERY, 'variables' => ['id' => $id]]);
+
+        if ($response->failed() || $response->json('errors')) {
+            throw new RuntimeException($response->json('errors.0.message') ?? 'HTTP ' . $response->status());
+        }
+
+        return $this->normalizeItem($response->json('data.Media'));
     }
 
     public function forget(Season $season): void
@@ -104,7 +154,8 @@ class AniListService
 
     private function cacheKey(Season $season): string
     {
-        return "anilist.season.{$season->year}." . $this->enumFor($season);
+        // v3: los items incluyen prequel_id y genres
+        return "anilist.season.v3.{$season->year}." . $this->enumFor($season);
     }
 
     private function fetchSeason(string $season, int $year): array
@@ -167,7 +218,42 @@ class AniListService
             'synopsis' => $this->cleanDescription($media['description']),
             'cover' => $media['coverImage']['extraLarge'] ?? $media['coverImage']['large'] ?? null,
             'thumb' => $media['coverImage']['large'] ?? null,
+            // Si es continuación de otro anime, el id de su precuela en AniList
+            'prequel_id' => $this->prequelId($media),
+            'estreno' => $this->estrenoOf($media),
+            // Nombres de género de AniList (en inglés); se emparejan con genres.anilist_name
+            'genres' => $media['genres'] ?? [],
         ];
+    }
+
+    /** @return array{name: string, year: int}|null */
+    private function estrenoOf(array $media): ?array
+    {
+        $year = $media['seasonYear'] ?? ($media['startDate']['year'] ?? null);
+        $name = array_search($media['season'] ?? null, self::SEASONS, true);
+
+        if (! $name) {
+            $month = $media['startDate']['month'] ?? null;
+            $name = $month ? match (true) {
+                $month <= 2 || $month === 12 => 'Invierno',
+                $month <= 5 => 'Primavera',
+                $month <= 8 => 'Verano',
+                default => 'Otoño',
+            } : null;
+        }
+
+        return ($name && $year) ? ['name' => $name, 'year' => (int) $year] : null;
+    }
+
+    private function prequelId(array $media): ?int
+    {
+        foreach ($media['relations']['edges'] ?? [] as $edge) {
+            if (($edge['relationType'] ?? null) === 'PREQUEL' && ($edge['node']['type'] ?? null) === 'ANIME') {
+                return (int) $edge['node']['id'];
+            }
+        }
+
+        return null;
     }
 
     private function cleanDescription(?string $text): ?string

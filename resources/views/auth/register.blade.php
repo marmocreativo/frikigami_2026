@@ -55,6 +55,7 @@
         <button type="submit" class="btn btn-primary w-full">
             Registrarme
         </button>
+        @include('auth._google-button')
 
         <p class="text-center text-sm mt-4">
             ¿Ya tienes cuenta?

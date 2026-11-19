@@ -17,7 +17,7 @@
             </div>
         @endif
 
-        <form method="POST" action="{{ route('admin.animes.translate', $anime) }}" class="space-y-3 mt-2">
+        <form method="POST" action="{{ route('admin.animes.traducir', $anime) }}" class="space-y-3 mt-2">
             @csrf
 
             @foreach ($labels as $type => $label)

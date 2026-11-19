@@ -35,13 +35,13 @@ class AdminGenreController extends Controller
 
         Genre::create($data);
 
-        return redirect()->route('admin.genres.index')
+        return redirect()->route('admin.generos.index')
             ->with('status', 'Género creado correctamente.');
     }
 
     public function show(): RedirectResponse
     {
-        return redirect()->route('admin.genres.index');
+        return redirect()->route('admin.generos.index');
     }
 
     public function edit(Genre $genre): View
@@ -59,7 +59,7 @@ class AdminGenreController extends Controller
 
         $genre->update($data);
 
-        return redirect()->route('admin.genres.index')
+        return redirect()->route('admin.generos.index')
             ->with('status', 'Género actualizado correctamente.');
     }
 
@@ -67,7 +67,7 @@ class AdminGenreController extends Controller
     {
         $genre->delete();
 
-        return redirect()->route('admin.genres.index')
+        return redirect()->route('admin.generos.index')
             ->with('status', 'Género eliminado.');
     }
 }

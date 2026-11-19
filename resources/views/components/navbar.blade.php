@@ -1,4 +1,4 @@
-<div class="navbar fixed top-5 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2.5rem)] max-w-8xl bg-base-100/80 backdrop-blur-md shadow-lg rounded-box px-4">
+<div class="navbar fixed top-5 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2.5rem)] max-w-8xl bg-base-100/80 backdrop-blur-md shadow-lg rounded-box px-4 py-1 min-h-0">
     <div class="navbar-start">
         <div class="dropdown lg:hidden">
             <div tabindex="0" role="button">
@@ -9,13 +9,11 @@
             <ul tabindex="0" class="menu menu-sm dropdown-content bg-base-100 rounded-box z-10 mt-3 w-52 p-2 shadow">
                 <li><a href="{{ route('home') }}">Home</a></li>
                 <li><a href="{{ route('animes.index') }}">Animes</a></li>
-                <li><a href="{{ route('news.index') }}">Noticias</a></li>
-                <li><a href="{{ route('polls.index') }}">Encuestas</a></li>
-                <li><a href="{{ route('shop.index') }}">Tienda</a></li>
+                <li><a href="{{ route('noticias.index') }}">Noticias</a></li>
             </ul>
         </div>
-        <a href="{{ route('home') }}" class="btn btn-ghost">
-            <img src="{{ asset('images/logo.png') }}" alt="Frikigami" class="h-24 w-auto">
+        <a href="{{ route('home') }}" class="inline-flex items-center px-2" aria-label="Frikigami, ir al inicio">
+            <img src="{{ asset('images/logo.png') }}" alt="Frikigami" class="h-12 w-auto">
         </a>
     </div>
 
@@ -23,9 +21,7 @@
         <ul class="menu menu-horizontal px-1">
             <li><a href="{{ route('home') }}">Home</a></li>
             <li><a href="{{ route('animes.index') }}">Animes</a></li>
-            <li><a href="{{ route('news.index') }}">Noticias</a></li>
-            <li><a href="{{ route('polls.index') }}">Encuestas</a></li>
-            <li><a href="{{ route('shop.index') }}">Tienda</a></li>
+            <li><a href="{{ route('noticias.index') }}">Noticias</a></li>
         </ul>
     </div>
 
@@ -38,14 +34,21 @@
 
         @auth
             <div class="dropdown dropdown-end">
-                <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar placeholder">
-                    <div class="bg-neutral text-neutral-content rounded-full w-8">
-                        <span class="text-xs">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</span>
-                    </div>
+                <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar {{ auth()->user()->avatar_url ? '' : 'placeholder' }}">
+                    @if (auth()->user()->avatar_url)
+                        <div class="w-8 rounded-full">
+                            <img src="{{ auth()->user()->avatar_url }}" alt="{{ auth()->user()->name }}" referrerpolicy="no-referrer">
+                        </div>
+                    @else
+                        <div class="bg-neutral text-neutral-content rounded-full w-8">
+                            <span class="text-xs">{{ auth()->user()->initials }}</span>
+                        </div>
+                    @endif
                 </div>
                 <ul tabindex="0" class="menu menu-sm dropdown-content bg-base-100 rounded-box z-10 mt-3 w-52 p-2 shadow">
-                    <li class="menu-title">{{ auth()->user()->name }}</li>
-                    <li><a href="{{ route('dashboard') }}">Mi perfil</a></li>
+                    <li class="menu-title">{{ auth()->user()->full_name }}</li>
+                    <li><a href="{{ route('perfil.edit') }}">Mi perfil</a></li>
+                    <li><a href="{{ route('dashboard') }}">Mi panel</a></li>
                     @if (auth()->user()->isAdmin())
                         <li><a href="{{ route('admin.dashboard') }}" class="text-primary">Panel Admin</a></li>
                     @endif

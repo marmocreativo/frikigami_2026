@@ -76,7 +76,7 @@ class AdminAnimeCastSyncController extends Controller
             $this->cast->forget($anime->anilist_id);
         }
 
-        return redirect()->route('admin.animes.anilist.cast', $anime)
+        return redirect()->route('admin.animes.anilist.reparto', $anime)
             ->with('status', 'Datos actualizados desde AniList.');
     }
 
@@ -133,7 +133,7 @@ class AdminAnimeCastSyncController extends Controller
             }
         }
 
-        return redirect()->route('admin.animes.anilist.cast', $anime)
+        return redirect()->route('admin.animes.anilist.reparto', $anime)
             ->with('status', $this->summary($stats));
     }
 
@@ -183,7 +183,7 @@ class AdminAnimeCastSyncController extends Controller
             ]);
         }
 
-        return redirect()->route('admin.animes.anilist.cast', $anime)
+        return redirect()->route('admin.animes.anilist.reparto', $anime)
             ->with('status', $this->summary($stats));
     }
 

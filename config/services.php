@@ -39,6 +39,12 @@ return [
         'model' => env('GEMINI_MODEL', 'gemini-3.5-flash-lite'),
     ],
 
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect' => env('GOOGLE_REDIRECT_URI', '/auth/google/callback'),
+    ],
+
     'translator' => env('TRANSLATOR_DRIVER', 'anthropic'),
 
     'ai_driver' => env('AI_DRIVER', env('TRANSLATOR_DRIVER', 'anthropic')),

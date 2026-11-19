@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasRatings;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Anime extends Model
 {
-    use HasFactory;
+    use HasFactory, HasRatings;
 
     protected $fillable = [
         'title',
@@ -57,6 +58,12 @@ class Anime extends Model
             ->withTimestamps();
     }
     
+    /** Actores de voz de este anime (tabla character_person, con anime_id). */
+    public function voiceActors(): BelongsToMany
+    {
+        return $this->belongsToMany(Person::class, 'character_person', 'anime_id', 'person_id')->distinct();
+    }
+
     public function news(): BelongsToMany
     {
         return $this->belongsToMany(News::class, 'anime_news')

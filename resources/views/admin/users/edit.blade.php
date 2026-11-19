@@ -1,6 +1,6 @@
 <x-layouts.admin :title="'Editar rol · ' . $user->name">
     <div class="flex items-center gap-3 mb-6">
-        <a href="{{ route('admin.users.index') }}" class="btn btn-ghost btn-sm">← Volver</a>
+        <a href="{{ route('admin.usuarios.index') }}" class="btn btn-ghost btn-sm">← Volver</a>
         <h1 class="text-2xl font-bold">Editar rol de usuario</h1>
     </div>
 
@@ -12,7 +12,7 @@
                 <p class="text-sm text-base-content/60">{{ $user->email }}</p>
             </div>
 
-            <form method="POST" action="{{ route('admin.users.update', $user) }}" class="space-y-4">
+            <form method="POST" action="{{ route('admin.usuarios.update', $user) }}" class="space-y-4">
                 @csrf
                 @method('PUT')
 

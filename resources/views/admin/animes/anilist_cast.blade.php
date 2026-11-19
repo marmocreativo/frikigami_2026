@@ -5,7 +5,7 @@
             <h1 class="text-2xl font-bold">{{ $anime->title }} · Personajes y cast</h1>
         </div>
 
-        <form method="POST" action="{{ route('admin.animes.anilist.cast.refresh', $anime) }}">
+        <form method="POST" action="{{ route('admin.animes.anilist.reparto.actualizar', $anime) }}">
             @csrf
             <button type="submit" class="btn btn-outline btn-sm">Actualizar desde AniList</button>
         </form>
@@ -24,8 +24,8 @@
             <span>No se pudo consultar AniList: {{ $error }}</span>
         </div>
     @else
-        <form id="characters-form" method="POST" action="{{ route('admin.animes.anilist.cast.characters', $anime) }}">@csrf</form>
-        <form id="staff-form" method="POST" action="{{ route('admin.animes.anilist.cast.staff', $anime) }}">@csrf</form>
+        <form id="characters-form" method="POST" action="{{ route('admin.animes.anilist.reparto.personajes', $anime) }}">@csrf</form>
+        <form id="staff-form" method="POST" action="{{ route('admin.animes.anilist.reparto.equipo', $anime) }}">@csrf</form>
 
         {{-- PERSONAJES Y ACTORES DE VOZ --}}
         <div class="card bg-base-100 shadow-sm mb-6">

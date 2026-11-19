@@ -16,14 +16,23 @@ class AdminCharacterController extends Controller
         $animes = Anime::orderBy('title')->get(['id', 'title', 'slug']);
         $currentAnime = $animes->firstWhere('slug', $request->query('anime'));
 
-        $characters = Character::with('animes')
-            ->when($currentAnime, fn ($query, $anime) => $query->whereHas('animes', fn ($a) => $a->where('animes.id', $anime->id)))
-            ->when($request->query('q'), fn ($query, $q) => $query->where('name', 'like', "%{$q}%"))
-            ->orderBy('name')
-            ->paginate(20)
+        $term = $request->query('q');
+        $byName = fn ($query) => $query->when($term, fn ($q) => $q->where('characters.name', 'like', "%{$term}%"));
+
+        // Agrupados por anime (un personaje aparece en cada anime donde participa)
+        $groups = Anime::with(['season', 'characters' => fn ($query) => $byName($query)->orderBy('characters.name')])
+            ->whereHas('characters', $byName)
+            ->when($currentAnime, fn ($query, $anime) => $query->where('id', $anime->id))
+            ->orderBy('title')
+            ->paginate(10)
             ->withQueryString();
 
-        return view('admin.characters.index', compact('characters', 'animes', 'currentAnime'));
+        // Personajes sin anime: para que nunca queden fuera del listado
+        $orphans = (! $currentAnime && ! $groups->hasMorePages())
+            ? $byName(Character::doesntHave('animes'))->orderBy('name')->get()
+            : collect();
+
+        return view('admin.characters.index', compact('groups', 'orphans', 'animes', 'currentAnime'));
     }
 
     public function create(): View
@@ -41,13 +50,13 @@ class AdminCharacterController extends Controller
 
         Character::create($data);
 
-        return redirect()->route('admin.characters.index')
+        return redirect()->route('admin.personajes.index')
             ->with('status', 'Personaje creado correctamente.');
     }
 
     public function show(Character $character): RedirectResponse
     {
-        return redirect()->route('characters.show', $character);
+        return redirect()->route('personajes.show', $character);
     }
 
     public function edit(Character $character): View
@@ -65,7 +74,7 @@ class AdminCharacterController extends Controller
 
         $character->update($data);
 
-        return redirect()->route('admin.characters.index')
+        return redirect()->route('admin.personajes.index')
             ->with('status', 'Personaje actualizado correctamente.');
     }
 
@@ -73,7 +82,7 @@ class AdminCharacterController extends Controller
     {
         $character->delete();
 
-        return redirect()->route('admin.characters.index')
+        return redirect()->route('admin.personajes.index')
             ->with('status', 'Personaje eliminado.');
     }
 }

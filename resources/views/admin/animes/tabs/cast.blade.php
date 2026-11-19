@@ -15,7 +15,7 @@
                                 <td>{{ $person->name }}</td>
                                 <td class="text-base-content/60">{{ $person->pivot->role }}</td>
                                 <td>
-                                    <form method="POST" action="{{ route('admin.animes.staff.detach', [$anime, $person]) }}">
+                                    <form method="POST" action="{{ route('admin.animes.reparto.quitar', [$anime, $person]) }}">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-xs btn-error btn-outline">Quitar</button>
@@ -34,7 +34,7 @@
         <div class="card-body">
             <h2 class="card-title text-base mb-3">Agregar staff</h2>
 
-            <form method="POST" action="{{ route('admin.animes.staff.attach', $anime) }}" class="space-y-3">
+            <form method="POST" action="{{ route('admin.animes.reparto.adjuntar', $anime) }}" class="space-y-3">
                 @csrf
                 <div class="form-control">
                     <label class="label"><span class="label-text">Persona</span></label>

@@ -108,7 +108,10 @@
 
                                 <div class="absolute inset-x-0 bottom-0 p-3">
                                     <p class="font-bold text-sm text-neutral-content leading-tight">{{ $anime->title }}</p>
-                                    @if ($anime->season)
+                                    @php $temporadaEstreno = isset($activeSeason) ? $anime->animeSeasons->first() : null; @endphp
+                                    @if ($temporadaEstreno && $anime->season_id !== $activeSeason->id)
+                                        <p class="text-xs text-neutral-content/70">{{ $temporadaEstreno->label }} · {{ $activeSeason->label }}</p>
+                                    @elseif ($anime->season)
                                         <p class="text-xs text-neutral-content/70">{{ $anime->season->label }}</p>
                                     @endif
                                 </div>

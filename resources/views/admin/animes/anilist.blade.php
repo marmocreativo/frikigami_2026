@@ -1,14 +1,14 @@
 <x-layouts.admin :title="'AniList · ' . $anime->title">
     <div class="flex items-center justify-between mb-6">
         <div class="flex items-center gap-3">
-            <a href="{{ route('admin.anime-seasons.index', ['anime' => $anime->slug]) }}" class="btn btn-ghost btn-sm">← Temporadas</a>
+            <a href="{{ route('admin.temporadas.index', ['anime' => $anime->slug]) }}" class="btn btn-ghost btn-sm">← Temporadas</a>
             <h1 class="text-2xl font-bold">{{ $anime->title }} · AniList</h1>
         </div>
 
         @if ($anime->anilist_id)
             <div class="flex gap-2">
-                <a href="{{ route('admin.animes.anilist.cast', $anime) }}" class="btn btn-outline btn-sm">Personajes y cast</a>
-                <form method="POST" action="{{ route('admin.animes.anilist.refresh', $anime) }}">
+                <a href="{{ route('admin.animes.anilist.reparto', $anime) }}" class="btn btn-outline btn-sm">Personajes y cast</a>
+                <form method="POST" action="{{ route('admin.animes.anilist.actualizar', $anime) }}">
                     @csrf
                     <button type="submit" class="btn btn-outline btn-sm">Actualizar desde AniList</button>
                 </form>
@@ -57,7 +57,7 @@
                             @if (in_array($candidate['anilist_id'], $takenIds, true))
                                 <span class="badge badge-warning badge-sm">Ya vinculado a otro anime</span>
                             @else
-                                <form method="POST" action="{{ route('admin.animes.anilist.link', $anime) }}">
+                                <form method="POST" action="{{ route('admin.animes.anilist.vincular', $anime) }}">
                                     @csrf
                                     <input type="hidden" name="anilist_id" value="{{ $candidate['anilist_id'] }}">
                                     <button type="submit" class="btn btn-primary btn-xs">Vincular</button>
@@ -87,7 +87,7 @@
         </form>
 
         {{-- Formulario de importación (los checkboxes se asocian con form="import-form") --}}
-        <form id="import-form" method="POST" action="{{ route('admin.animes.anilist.seasons', $anime) }}">
+        <form id="import-form" method="POST" action="{{ route('admin.animes.anilist.temporadas', $anime) }}">
             @csrf
             @foreach ($formats as $format)
                 <input type="hidden" name="formats[]" value="{{ $format }}">
@@ -161,7 +161,7 @@
                                 <td>
                                     <div class="flex justify-end">
                                         @if ($row['state'] === 'linked')
-                                            <form method="POST" action="{{ route('admin.animes.anilist.episodes', [$anime, $local]) }}">
+                                            <form method="POST" action="{{ route('admin.animes.anilist.episodios', [$anime, $local]) }}">
                                                 @csrf
                                                 <button type="submit" class="btn btn-outline btn-xs">
                                                     {{ $local->episodes_count > 0 ? 'Completar episodios' : 'Importar episodios' }}
@@ -169,7 +169,7 @@
                                             </form>
                                         @endif
                                         @if ($row['state'] === 'possible')
-                                            <form method="POST" action="{{ route('admin.animes.anilist.seasons.link', $anime) }}">
+                                            <form method="POST" action="{{ route('admin.animes.anilist.temporadas.vincular', $anime) }}">
                                                 @csrf
                                                 <input type="hidden" name="anime_season_id" value="{{ $local->id }}">
                                                 <input type="hidden" name="anilist_id" value="{{ $item['anilist_id'] }}">

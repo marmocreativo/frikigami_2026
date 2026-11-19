@@ -8,7 +8,7 @@
                 {{ $currentAnime ? 'Noticias de ' . $currentAnime->title : 'Noticias' }}
             </h1>
         </div>
-        <a href="{{ route('admin.news.create', array_filter(['anime' => $currentAnime?->slug])) }}"
+        <a href="{{ route('admin.noticias.create', array_filter(['anime' => $currentAnime?->slug])) }}"
            class="btn btn-primary btn-sm">
             {{ $currentAnime ? '+ Nueva noticia de este anime' : '+ Nueva Noticia' }}
         </a>
@@ -16,7 +16,7 @@
 
     @include('admin.partials.alert')
 
-    <form method="GET" action="{{ route('admin.news.index') }}" class="card bg-base-100 shadow-sm mb-4">
+    <form method="GET" action="{{ route('admin.noticias.index') }}" class="card bg-base-100 shadow-sm mb-4">
         <div class="card-body p-4 flex-row flex-wrap items-center gap-3">
             <label class="input input-sm w-full sm:w-64">
                 <input type="search" name="q" value="{{ request('q') }}" placeholder="Buscar por título..." />
@@ -40,7 +40,7 @@
             <button type="submit" class="btn btn-primary btn-sm">Buscar</button>
 
             @if (request()->anyFilled(['q', 'anime', 'status', 'sort']))
-                <a href="{{ route('admin.news.index') }}" class="btn btn-ghost btn-sm">Limpiar</a>
+                <a href="{{ route('admin.noticias.index') }}" class="btn btn-ghost btn-sm">Limpiar</a>
             @endif
         </div>
     </form>
@@ -49,6 +49,7 @@
             <table class="table table-zebra table-sm">
                 <thead>
                     <tr>
+                        <th class="w-20"></th>
                         <th>Título</th>
                         <th>Autor</th>
                         <th>Publicada</th>
@@ -59,6 +60,14 @@
                 <tbody>
                     @forelse ($news as $item)
                         <tr>
+                            <td>
+                                @if ($item->cover_image)
+                                    <img src="{{ Storage::url($item->cover_image) }}" alt="{{ $item->title }}" loading="lazy"
+                                         class="w-16 h-10 object-cover rounded">
+                                @else
+                                    <div class="w-16 h-10 rounded bg-base-300 flex items-center justify-center text-base-content/30">?</div>
+                                @endif
+                            </td>
                             <td class="font-medium">{{ $item->title }}</td>
                             <td>{{ $item->user->name ?? '—' }}</td>
                             <td>
@@ -78,10 +87,10 @@
                             <td>
                                 <div class="flex gap-2 justify-end">
                                     @if ($item->published_at)
-                                        <a href="{{ route('news.show', $item) }}" class="btn btn-ghost btn-xs" target="_blank">Ver</a>
+                                        <a href="{{ route('noticias.show', $item) }}" class="btn btn-ghost btn-xs" target="_blank">Ver</a>
                                     @endif
-                                    <a href="{{ route('admin.news.edit', $item) }}" class="btn btn-outline btn-xs">Editar</a>
-                                    <form method="POST" action="{{ route('admin.news.destroy', $item) }}" onsubmit="return confirm('¿Eliminar esta noticia?');">
+                                    <a href="{{ route('admin.noticias.edit', $item) }}" class="btn btn-outline btn-xs">Editar</a>
+                                    <form method="POST" action="{{ route('admin.noticias.destroy', $item) }}" onsubmit="return confirm('¿Eliminar esta noticia?');">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-error btn-xs btn-outline">Eliminar</button>
@@ -91,7 +100,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center text-base-content/60 py-8">No hay noticias registradas.</td>
+                            <td colspan="6" class="text-center text-base-content/60 py-8">No hay noticias registradas.</td>
                         </tr>
                     @endforelse
                 </tbody>

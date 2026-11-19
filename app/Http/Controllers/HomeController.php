@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Anime;
 use App\Models\News;
 use App\Models\Season;
+use App\Models\Slide;
 use Illuminate\View\View;
 
 class HomeController extends Controller
@@ -43,6 +44,9 @@ class HomeController extends Controller
             ->take(6)
             ->get();
 
-        return view('home', compact('seasons', 'currentSeason', 'seasonAnimes', 'latestNews', 'ongoingAnimes'));
+        // Sliders del carrusel (si no hay ninguno activo, el inicio muestra la última noticia)
+        $slides = Slide::with('anime')->active()->ordered()->get();
+
+        return view('home', compact('slides', 'seasons', 'currentSeason', 'seasonAnimes', 'latestNews', 'ongoingAnimes'));
     }
 }

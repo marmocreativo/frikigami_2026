@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Anime;
 use App\Models\AnimeSeason;
 use App\Services\AniListSeriesService;
+use App\Services\EpisodeThumbnails;
 use App\Services\KitsuService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -225,7 +226,7 @@ class AdminAnimeSyncController extends Controller
 
         return redirect()->route('admin.animes.anilist', $anime)->with(
             'status',
-            "{$animeSeason->label}: {$result['created']} episodios nuevos y {$result['updated']} completados (fuente: {$result['source']})."
+            "{$animeSeason->label}: {$result['created']} episodios nuevos y {$result['updated']} completados, {$result['thumbnails']} imágenes descargadas (fuente: {$result['source']})."
         );
     }
 
@@ -255,6 +256,39 @@ class AdminAnimeSyncController extends Controller
         }
 
         $existing = $animeSeason->episodes()->get()->keyBy('number');
+
+        // Imagen previa: la de la fuente; si Kitsu no la trae, la de los enlaces de streaming de AniList
+        $withoutThumb = fn ($episode) => $episode['number'] >= 1
+            && empty($existing->get($episode['number'])?->thumbnail);
+
+        if (
+            $animeSeason->anilist_id
+            && collect($episodes)->contains(fn ($e) => $withoutThumb($e) && empty($e['thumbnail']))
+        ) {
+            try {
+                $fallback = $this->series->streamingThumbnails($animeSeason->anilist_id);
+            } catch (RuntimeException) {
+                $fallback = [];
+            }
+
+            $episodes = array_map(function ($episode) use ($fallback) {
+                $episode['thumbnail'] = $episode['thumbnail'] ?? ($fallback[$episode['number']] ?? null);
+
+                return $episode;
+            }, $episodes);
+        }
+
+        $thumbUrls = collect($episodes)
+            ->filter(fn ($e) => $withoutThumb($e) && ! empty($e['thumbnail']))
+            ->mapWithKeys(fn ($e) => [$e['number'] => $e['thumbnail']])
+            ->all();
+
+        $thumbs = $thumbUrls
+            ? app(EpisodeThumbnails::class)->download(
+                $thumbUrls,
+                'episodes/' . ($animeSeason->anime->slug ?? $animeSeason->anime_id) . '/t' . $animeSeason->number
+            )
+            : [];
 
         // Sinopsis al español: solo episodios nuevos o con la sinopsis vacía
         $pending = collect($episodes)
@@ -293,6 +327,10 @@ class AdminAnimeSyncController extends Controller
                     $changes['air_date'] = $episode['air_date'];
                 }
 
+                if (! $local->thumbnail && isset($thumbs[$episode['number']])) {
+                    $changes['thumbnail'] = $thumbs[$episode['number']];
+                }
+
                 if ($changes) {
                     $local->update($changes);
                     $updated++;
@@ -306,6 +344,7 @@ class AdminAnimeSyncController extends Controller
                 'number' => $episode['number'],
                 'title' => $title,
                 'synopsis' => $synopsis,
+                'thumbnail' => $thumbs[$episode['number']] ?? null,
                 'air_date' => $episode['air_date'],
             ]);
 
@@ -316,6 +355,7 @@ class AdminAnimeSyncController extends Controller
             'created' => $created,
             'updated' => $updated,
             'total' => count($episodes),
+            'thumbnails' => count($thumbs),
             'source' => $source,
         ];
     }

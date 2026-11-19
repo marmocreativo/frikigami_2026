@@ -12,18 +12,19 @@
 
     @include('admin.partials.alert')
 
-    <form method="GET" action="{{ route('admin.comments.index') }}" class="card bg-base-100 shadow-sm mb-4">
+    <form method="GET" action="{{ route('admin.comentarios.index') }}" class="card bg-base-100 shadow-sm mb-4">
         <div class="card-body p-4 flex-row flex-wrap items-center gap-3">
             <x-admin.anime-filter :animes="$animes" :current="$currentAnime?->slug" />
 
             <select name="type" class="select select-sm w-full sm:w-44" onchange="this.form.submit()">
-                <option value="">Noticias y episodios</option>
+                <option value="">Noticias, animes y episodios</option>
                 <option value="news" @selected($type === 'news')>Solo noticias</option>
                 <option value="episodes" @selected($type === 'episodes')>Solo episodios</option>
+                <option value="animes" @selected($type === 'animes')>Solo animes</option>
             </select>
 
             @if ($currentAnime || $type)
-                <a href="{{ route('admin.comments.index') }}" class="btn btn-ghost btn-sm">Limpiar</a>
+                <a href="{{ route('admin.comentarios.index') }}" class="btn btn-ghost btn-sm">Limpiar</a>
             @endif
         </div>
     </form>
@@ -53,9 +54,10 @@
                                 @if ($comment->commentable)
                                     @php
                                         $type = class_basename($comment->commentable_type);
-                                        $label = $type === 'News'
-                                            ? $comment->commentable->title
-                                            : 'Ep. ' . $comment->commentable->number . ' · ' . $comment->commentable->animeSeason?->anime?->title;
+                                        $label = match ($type) {
+                                            'News', 'Anime' => $comment->commentable->title,
+                                            default => 'Ep. ' . $comment->commentable->number . ' · ' . $comment->commentable->animeSeason?->anime?->title,
+                                        };
                                     @endphp
                                     <span class="badge badge-sm badge-outline">{{ $type }}</span>
                                     <span class="text-xs text-base-content/60 block truncate max-w-32">{{ $label }}</span>
@@ -67,7 +69,7 @@
                                 {{ $comment->created_at->format('d/m/Y H:i') }}
                             </td>
                             <td>
-                                <form method="POST" action="{{ route('admin.comments.destroy', $comment) }}"
+                                <form method="POST" action="{{ route('admin.comentarios.destroy', $comment) }}"
                                       onsubmit="return confirm('¿Eliminar este comentario?');">
                                     @csrf
                                     @method('DELETE')

@@ -27,6 +27,15 @@
                     <div class="flex-1">
                         <h1 class="text-3xl font-bold">{{ $anime->title }}</h1>
 
+                        @php $ratingCount = $anime->ratings()->count(); @endphp
+                        <a href="{{ route('animes.show', $anime) }}#calificaciones" class="inline-flex items-center gap-2 mt-1 group">
+                            <x-stars :value="$anime->displayRating()" size="text-xl" />
+                            <span class="text-sm text-base-content/60 group-hover:text-primary transition-colors">
+                                {{ number_format($anime->displayRating(), 1) }}
+                                · {{ $ratingCount ? $ratingCount.' '.($ratingCount === 1 ? 'calificación' : 'calificaciones') : 'Sin calificaciones' }}
+                            </span>
+                        </a>
+
                         <div class="flex flex-wrap gap-2 my-3">
                             <span class="badge badge-primary">{{ ucfirst($anime->status) }}</span>
                             @if ($anime->season)
@@ -40,29 +49,17 @@
                         @if ($anime->synopsis)
                             <p class="text-base text-base-content/70">{{ $anime->synopsis }}</p>
                         @endif
-
-                        @auth
-                            @if (auth()->user()->isAdmin())
-                                <div class="flex gap-2 mt-4">
-                                    <a href="{{ route('admin.animes.edit', $anime) }}" class="btn btn-sm btn-outline">Editar</a>
-                                    <form method="POST" action="{{ route('admin.animes.destroy', $anime) }}" onsubmit="return confirm('¿Eliminar este anime?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-error btn-outline">Eliminar</button>
-                                    </form>
-                                </div>
-                            @endif
-                        @endauth
                     </div>
                 </div>
 
                 @php
                     $tabs = [
                         'animes.show' => 'Información',
-                        'animes.cast' => 'Cast',
-                        'animes.characters' => 'Personajes',
-                        'animes.episodes' => 'Episodios',
-                        'animes.news' => 'Noticias',
+                        'animes.temporadas' => 'Temporadas',
+                        'animes.reparto' => 'Reparto',
+                        'animes.personajes' => 'Personajes',
+                        'animes.episodios' => 'Episodios',
+                        'animes.noticias' => 'Noticias',
                     ];
                 @endphp
 
@@ -70,7 +67,7 @@
                     @foreach ($tabs as $routeName => $label)
                         <a href="{{ route($routeName, $anime) }}"
                         class="px-4 py-1.5 rounded-full text-sm font-medium transition-colors
-                                {{ request()->routeIs($routeName)
+                                {{ (request()->routeIs($routeName) || ($routeName === 'animes.episodios' && request()->routeIs('animes.temporada', 'animes.episodio')))
                                         ? 'bg-primary text-primary-content'
                                         : 'bg-base-100 text-base-content/60 hover:text-base-content' }}">
                             {{ $label }}

@@ -50,6 +50,7 @@
         <button type="submit" class="btn btn-primary w-full">
             Iniciar sesión
         </button>
+        @include('auth._google-button')
 
         @if (Route::has('register'))
             <p class="text-center text-sm mt-4">

@@ -3,7 +3,7 @@
 @else
     <div class="space-y-4">
         @foreach ($news as $item)
-            <a href="{{ route('news.show', $item) }}" class="card bg-base-100 shadow-sm hover:shadow-md transition-shadow block">
+            <a href="{{ route('noticias.show', $item) }}" class="card bg-base-100 shadow-sm hover:shadow-md transition-shadow block">
                 <div class="card-body p-4">
                     <div class="flex items-start justify-between gap-4">
                         <div>

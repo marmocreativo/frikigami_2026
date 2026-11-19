@@ -8,6 +8,7 @@ use App\Models\Genre;
 use App\Models\Season;
 use App\Models\Character;
 use App\Models\Person;
+use App\Services\FranchiseLinker;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
@@ -84,10 +85,31 @@ class AdminAnimeController extends Controller
         $genres = Genre::orderBy('name')->get();
         $seasons = Season::orderByDesc('year')->orderBy('name')->get();
         $anime->load('genres');
+        $otros = Anime::where('id', '!=', $anime->id)->orderBy('title')->get(['id', 'title']);
 
-        return view('admin.animes.edit', compact('anime', 'genres', 'seasons'));
+        return view('admin.animes.edit', compact('anime', 'genres', 'seasons', 'otros'));
     }
 
+    /**
+     * Convierte este anime en temporada(s) de otro anime "padre" y lo elimina.
+     */
+    public function moverATemporada(Request $request, Anime $anime, FranchiseLinker $franchises): RedirectResponse
+    {
+        $data = $request->validate([
+            'target_id' => ['required', 'exists:animes,id', 'not_in:'.$anime->id],
+        ], [
+            'target_id.required' => 'Elige el anime padre.',
+            'target_id.not_in' => 'Elige un anime distinto.',
+        ]);
+
+        $target = Anime::findOrFail($data['target_id']);
+        $title = $anime->title;
+
+        $moved = $franchises->mergeInto($anime, $target);
+
+        return redirect()->route('admin.animes.edit', $target)
+            ->with('status', "«{$title}» ahora es temporada de «{$target->title}» ({$moved} temporada(s) movida(s)).");
+    }
     public function update(StoreAnimeRequest $request, Anime $anime): RedirectResponse
     {
         $data = $request->validated();

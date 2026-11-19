@@ -1,42 +1,86 @@
 <?php
 
+use App\Http\Controllers\AdminAniListController;
+use App\Http\Controllers\AdminAniListSearchController;
+use App\Http\Controllers\AdminAnimeCastSyncController;
+use App\Http\Controllers\AdminAnimeController;
+use App\Http\Controllers\AdminAnimeSeasonController;
+use App\Http\Controllers\AdminAnimeSyncController;
+use App\Http\Controllers\AdminAnimeTranslateController;
+use App\Http\Controllers\AdminCharacterController;
+use App\Http\Controllers\AdminCommentController;
+use App\Http\Controllers\AdminEpisodeController;
+use App\Http\Controllers\AdminGenreController;
+use App\Http\Controllers\AdminNewsAiController;
+use App\Http\Controllers\AdminNewsController;
+use App\Http\Controllers\AdminPersonController;
+use App\Http\Controllers\AdminSeasonController;
+use App\Http\Controllers\AdminSlideController;
+use App\Http\Controllers\AdminUserController;
+use App\Http\Controllers\AnimeController;
+use App\Http\Controllers\CharacterController;
+use App\Http\Controllers\CommentController;
+use App\Http\Controllers\GoogleAuthController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\NewsController;
+use App\Http\Controllers\PersonController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReviewController;
 use Illuminate\Support\Facades\Route;
 
 // ─── Rutas públicas ───────────────────────────────────────────────────────────
 
-Route::get('/', App\Http\Controllers\HomeController::class)->name('home');
+Route::get('/', HomeController::class)->name('home');
 
 // Animes
-Route::controller(App\Http\Controllers\AnimeController::class)
+// Los segmentos fijos (genero, estreno) van antes que {anime:slug}.
+// Esos slugs están reservados (ver StoreAnimeRequest).
+Route::controller(AnimeController::class)
     ->prefix('animes')
     ->name('animes.')
     ->group(function () {
         Route::get('/', 'index')->name('index');
-        Route::get('temporada/{temporada}', 'season')->name('season');
-        Route::get('genero/{genre:slug}', 'genre')->name('genre');
+        Route::get('genero/{genre:slug}', 'genero')->name('genero');
+        Route::get('estreno/{estreno}', 'estreno')->name('estreno');
 
         Route::get('{anime:slug}', 'show')->name('show');
-        Route::get('{anime:slug}/cast', 'cast')->name('cast');
-        Route::get('{anime:slug}/personajes', 'characters')->name('characters');
-        Route::get('{anime:slug}/episodios', 'episodes')->name('episodes');
-        Route::get('{anime:slug}/noticias', 'news')->name('news');
+        Route::get('{anime:slug}/temporadas', 'temporadas')->name('temporadas');
+        Route::get('{anime:slug}/reparto', 'reparto')->name('reparto');
+        Route::get('{anime:slug}/personajes', 'personajes')->name('personajes');
+        Route::get('{anime:slug}/noticias', 'noticias')->name('noticias');
+
+        Route::get('{anime:slug}/episodios', 'episodios')->name('episodios');
+        Route::get('{anime:slug}/temporada-{numero}/episodios', 'temporada')
+            ->whereNumber('numero')->name('temporada');
+        Route::get('{anime:slug}/temporada-{numero}/episodios/{episodio}', 'episodio')
+            ->whereNumber(['numero', 'episodio'])->name('episodio');
     });
 
+// Redirecciones 301 desde las URLs anteriores
+Route::get('animes/temporada/{valor}', fn (string $valor) => redirect()->route('animes.estreno', $valor, 301));
+Route::get('animes/{anime:slug}/cast', fn (App\Models\Anime $anime) => redirect()->route('animes.reparto', $anime, 301));
+
 // Noticias
-Route::get('/noticias', [App\Http\Controllers\NewsController::class, 'index'])->name('news.index');
-Route::get('/noticias/{news:slug}', [App\Http\Controllers\NewsController::class, 'show'])->name('news.show');
+Route::get('/noticias', [NewsController::class, 'index'])->name('noticias.index');
+Route::get('/noticias/{news:slug}', [NewsController::class, 'show'])->name('noticias.show');
 
 // Personas
-Route::get('/personas', [App\Http\Controllers\PersonController::class, 'index'])->name('people.index');
-Route::get('/personas/{person:slug}', [App\Http\Controllers\PersonController::class, 'show'])->name('people.show');
+Route::get('/personas', [PersonController::class, 'index'])->name('personas.index');
+Route::get('/personas/{person:slug}', [PersonController::class, 'show'])->name('personas.show');
 
 // Personajes
-Route::get('/personajes', [App\Http\Controllers\CharacterController::class, 'index'])->name('characters.index');
-Route::get('/personajes/{character:slug}', [App\Http\Controllers\CharacterController::class, 'show'])->name('characters.show');
+Route::get('/personajes', [CharacterController::class, 'index'])->name('personajes.index');
+Route::get('/personajes/{character:slug}', [CharacterController::class, 'show'])->name('personajes.show');
 
 // Encuestas y Tienda (placeholders)
-Route::get('/encuestas', function () { return view('polls.index'); })->name('polls.index');
-Route::get('/tienda', function () { return view('shop.index'); })->name('shop.index');
+Route::get('/encuestas', function () { return view('polls.index'); })->name('encuestas.index');
+Route::get('/tienda', function () { return view('shop.index'); })->name('tienda.index');
+
+// Login con Google
+Route::middleware('guest')->prefix('auth/google')->name('google.')->group(function () {
+    Route::get('/', [GoogleAuthController::class, 'redirect'])->name('redirect');
+    Route::get('callback', [GoogleAuthController::class, 'callback'])->name('callback');
+});
 
 // ─── Rutas autenticadas (usuarios registrados) ────────────────────────────────
 
@@ -46,9 +90,19 @@ Route::middleware(['auth'])->group(function () {
         return view('dashboard');
     })->name('dashboard');
 
+    // Perfil
+    Route::get('/perfil', [ProfileController::class, 'edit'])->name('perfil.edit');
+    Route::put('/perfil', [ProfileController::class, 'update'])->name('perfil.update');
+    Route::delete('/perfil/foto', [ProfileController::class, 'destroyAvatar'])->name('perfil.foto.destroy');
+
+    // Calificar (1 a 5 estrellas) y comentar animes y episodios
+    Route::post('/calificaciones', [ReviewController::class, 'store'])
+        ->middleware('throttle:30,1')
+        ->name('calificaciones.store');
+
     // Comentarios
-    Route::post('/comentarios', [App\Http\Controllers\CommentController::class, 'store'])->name('comments.store');
-    Route::delete('/comentarios/{comment}', [App\Http\Controllers\CommentController::class, 'destroy'])->name('comments.destroy');
+    Route::post('/comentarios', [CommentController::class, 'store'])->name('comentarios.store');
+    Route::delete('/comentarios/{comment}', [CommentController::class, 'destroy'])->name('comentarios.destroy');
 
 });
 
@@ -61,64 +115,92 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     })->name('dashboard');
 
     // Animes
-    Route::resource('animes', App\Http\Controllers\AdminAnimeController::class);
+    Route::resource('animes', AdminAnimeController::class);
 
-    // Temporadas de un anime desde AniList
-    Route::get('animes/{anime}/anilist', [App\Http\Controllers\AdminAnimeSyncController::class, 'show'])->name('animes.anilist');
-    Route::post('animes/{anime}/anilist/refresh', [App\Http\Controllers\AdminAnimeSyncController::class, 'refresh'])->name('animes.anilist.refresh');
-    Route::post('animes/{anime}/anilist/link', [App\Http\Controllers\AdminAnimeSyncController::class, 'linkAnime'])->name('animes.anilist.link');
-    Route::post('animes/{anime}/anilist/seasons', [App\Http\Controllers\AdminAnimeSyncController::class, 'importSeasons'])->name('animes.anilist.seasons');
-    Route::post('animes/{anime}/anilist/seasons/link', [App\Http\Controllers\AdminAnimeSyncController::class, 'linkSeason'])->name('animes.anilist.seasons.link');
-    Route::post('animes/{anime}/anilist/seasons/{animeSeason}/episodes', [App\Http\Controllers\AdminAnimeSyncController::class, 'importEpisodes'])->name('animes.anilist.episodes');
-    Route::get('animes/{anime}/anilist/cast', [App\Http\Controllers\AdminAnimeCastSyncController::class, 'show'])->name('animes.anilist.cast');
-    Route::post('animes/{anime}/anilist/cast/refresh', [App\Http\Controllers\AdminAnimeCastSyncController::class, 'refresh'])->name('animes.anilist.cast.refresh');
-    Route::post('animes/{anime}/anilist/cast/characters', [App\Http\Controllers\AdminAnimeCastSyncController::class, 'importCharacters'])->name('animes.anilist.cast.characters');
-    Route::post('animes/{anime}/anilist/cast/staff', [App\Http\Controllers\AdminAnimeCastSyncController::class, 'importStaff'])->name('animes.anilist.cast.staff');
-    Route::post('animes/{anime}/translate', [App\Http\Controllers\AdminAnimeTranslateController::class, 'store'])->name('animes.translate');
+    // Buscar en AniList: franquicia (precuelas y secuelas) e importación
+    Route::prefix('anilist')->name('anilist.')->group(function () {
+        Route::get('buscar', [AdminAniListSearchController::class, 'buscar'])->name('buscar');
+        Route::get('franquicia/{id}', [AdminAniListSearchController::class, 'franquicia'])->whereNumber('id')->name('franquicia');
+        Route::post('franquicia/{id}/importar', [AdminAniListSearchController::class, 'importar'])->whereNumber('id')->name('importar');
+    });
 
-    // Cast del anime (staff)
-    Route::post('animes/{anime}/staff', [App\Http\Controllers\AdminAnimeController::class, 'attachStaff'])->name('animes.staff.attach');
-    Route::delete('animes/{anime}/staff/{person}', [App\Http\Controllers\AdminAnimeController::class, 'detachStaff'])->name('animes.staff.detach');
+    // Sincronización con AniList
+    Route::prefix('animes/{anime}/anilist')->name('animes.anilist')->group(function () {
+        Route::get('/', [AdminAnimeSyncController::class, 'show'])->name('');
+        Route::post('actualizar', [AdminAnimeSyncController::class, 'refresh'])->name('.actualizar');
+        Route::post('vincular', [AdminAnimeSyncController::class, 'linkAnime'])->name('.vincular');
+        Route::post('temporadas', [AdminAnimeSyncController::class, 'importSeasons'])->name('.temporadas');
+        Route::post('temporadas/vincular', [AdminAnimeSyncController::class, 'linkSeason'])->name('.temporadas.vincular');
+        Route::post('temporadas/{animeSeason}/episodios', [AdminAnimeSyncController::class, 'importEpisodes'])->name('.episodios');
+
+        Route::get('reparto', [AdminAnimeCastSyncController::class, 'show'])->name('.reparto');
+        Route::post('reparto/actualizar', [AdminAnimeCastSyncController::class, 'refresh'])->name('.reparto.actualizar');
+        Route::post('reparto/personajes', [AdminAnimeCastSyncController::class, 'importCharacters'])->name('.reparto.personajes');
+        Route::post('reparto/equipo', [AdminAnimeCastSyncController::class, 'importStaff'])->name('.reparto.equipo');
+    });
+
+    Route::post('animes/{anime}/mover-a-temporada', [AdminAnimeController::class, 'moverATemporada'])->name('animes.mover');
+    Route::post('animes/{anime}/traducir', [AdminAnimeTranslateController::class, 'store'])->name('animes.traducir');
+
+    // Reparto del anime (staff)
+    Route::post('animes/{anime}/reparto', [AdminAnimeController::class, 'attachStaff'])->name('animes.reparto.adjuntar');
+    Route::delete('animes/{anime}/reparto/{person}', [AdminAnimeController::class, 'detachStaff'])->name('animes.reparto.quitar');
 
     // Personajes del anime
-    Route::post('animes/{anime}/characters', [App\Http\Controllers\AdminAnimeController::class, 'attachCharacter'])->name('animes.characters.attach');
-    Route::delete('animes/{anime}/characters/{character}', [App\Http\Controllers\AdminAnimeController::class, 'detachCharacter'])->name('animes.characters.detach');
+    Route::post('animes/{anime}/personajes', [AdminAnimeController::class, 'attachCharacter'])->name('animes.personajes.adjuntar');
+    Route::delete('animes/{anime}/personajes/{character}', [AdminAnimeController::class, 'detachCharacter'])->name('animes.personajes.quitar');
 
-    // Seiyuu de un personaje en un anime
-    Route::post('animes/{anime}/characters/{character}/voice-actor', [App\Http\Controllers\AdminAnimeController::class, 'attachVoiceActor'])->name('animes.voiceactor.attach');
-    Route::delete('animes/{anime}/characters/{character}/voice-actor/{person}', [App\Http\Controllers\AdminAnimeController::class, 'detachVoiceActor'])->name('animes.voiceactor.detach');
-    
-    // Animes Seasons
-    Route::resource('anime-seasons', App\Http\Controllers\AdminAnimeSeasonController::class);
+    // Actor de voz de un personaje en un anime
+    Route::post('animes/{anime}/personajes/{character}/actor-de-voz', [AdminAnimeController::class, 'attachVoiceActor'])->name('animes.actor_voz.adjuntar');
+    Route::delete('animes/{anime}/personajes/{character}/actor-de-voz/{person}', [AdminAnimeController::class, 'detachVoiceActor'])->name('animes.actor_voz.quitar');
 
-    // Comparar una temporada con AniList
-    Route::get('seasons/{season}/anilist', [App\Http\Controllers\AdminAniListController::class, 'show'])->name('seasons.anilist');
-    Route::post('seasons/{season}/anilist/refresh', [App\Http\Controllers\AdminAniListController::class, 'refresh'])->name('seasons.anilist.refresh');
-    Route::post('seasons/{season}/anilist/link', [App\Http\Controllers\AdminAniListController::class, 'link'])->name('seasons.anilist.link');
-    Route::post('seasons/{season}/anilist/import', [App\Http\Controllers\AdminAniListController::class, 'import'])->name('seasons.anilist.import');
+    // Temporadas de una serie (AnimeSeason)
+    Route::resource('temporadas', AdminAnimeSeasonController::class)
+        ->parameters(['temporadas' => 'anime_season']);
 
-    Route::resource('seasons', App\Http\Controllers\AdminSeasonController::class);
+    // Estrenos (temporada del año): comparar con AniList
+    Route::get('estrenos/{season}/anilist', [AdminAniListController::class, 'show'])->name('estrenos.anilist');
+    Route::post('estrenos/{season}/anilist/actualizar', [AdminAniListController::class, 'refresh'])->name('estrenos.anilist.actualizar');
+    Route::post('estrenos/{season}/anilist/vincular', [AdminAniListController::class, 'link'])->name('estrenos.anilist.vincular');
+    Route::post('estrenos/{season}/anilist/importar', [AdminAniListController::class, 'import'])->name('estrenos.anilist.importar');
 
-    // Generos
-    Route::resource('genres', App\Http\Controllers\AdminGenreController::class);
+    Route::resource('estrenos', AdminSeasonController::class)
+        ->parameters(['estrenos' => 'season']);
 
-    // Coments
-    Route::resource('comments', App\Http\Controllers\AdminCommentController::class)->only(['index', 'destroy']);
+    // Sliders del inicio
+    Route::resource('sliders', AdminSlideController::class)
+        ->parameters(['sliders' => 'slide'])
+        ->except('show');
 
-    // Users
-    Route::resource('users', App\Http\Controllers\AdminUserController::class)->only(['index', 'edit', 'update', 'destroy']);
+    // Géneros
+    Route::resource('generos', AdminGenreController::class)
+        ->parameters(['generos' => 'genre']);
+
+    // Comentarios
+    Route::resource('comentarios', AdminCommentController::class)
+        ->parameters(['comentarios' => 'comment'])
+        ->only(['index', 'destroy']);
+
+    // Usuarios
+    Route::resource('usuarios', AdminUserController::class)
+        ->parameters(['usuarios' => 'user'])
+        ->only(['index', 'edit', 'update', 'destroy']);
 
     // Noticias
-    Route::post('news/expand', [App\Http\Controllers\AdminNewsAiController::class, 'expand'])->name('news.expand');
-    Route::resource('news', App\Http\Controllers\AdminNewsController::class);
+    Route::post('noticias/expandir', [AdminNewsAiController::class, 'expand'])->name('noticias.expandir');
+    Route::resource('noticias', AdminNewsController::class)
+        ->parameters(['noticias' => 'news']);
 
     // Episodios
-    Route::resource('episodes', App\Http\Controllers\AdminEpisodeController::class);
+    Route::resource('episodios', AdminEpisodeController::class)
+        ->parameters(['episodios' => 'episode']);
 
     // Personas
-    Route::resource('people', App\Http\Controllers\AdminPersonController::class);
+    Route::resource('personas', AdminPersonController::class)
+        ->parameters(['personas' => 'person']);
 
     // Personajes
-    Route::resource('characters', App\Http\Controllers\AdminCharacterController::class);
+    Route::resource('personajes', AdminCharacterController::class)
+        ->parameters(['personajes' => 'character']);
 
 });

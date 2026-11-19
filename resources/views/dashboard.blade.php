@@ -13,18 +13,14 @@
         </div>
 
         {{-- Stats rápidas --}}
-        <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+        <div class="grid grid-cols-2 gap-4 mb-8">
             <div class="bg-base-100 rounded-box p-6">
                 <p class="text-sm text-base-content/60">Comentarios</p>
                 <p class="text-3xl font-bold text-base-content mt-1">{{ auth()->user()->comments()->count() }}</p>
             </div>
             <div class="bg-base-100 rounded-box p-6">
-                <p class="text-sm text-base-content/60">Noticias publicadas</p>
-                <p class="text-3xl font-bold text-base-content mt-1">{{ auth()->user()->news()->count() }}</p>
-            </div>
-            <div class="bg-base-100 rounded-box p-6">
-                <p class="text-sm text-base-content/60">Episodios agregados</p>
-                <p class="text-3xl font-bold text-base-content mt-1">{{ auth()->user()->episodes()->count() }}</p>
+                <p class="text-sm text-base-content/60">Calificaciones</p>
+                <p class="text-3xl font-bold text-base-content mt-1">{{ auth()->user()->ratings()->count() }}</p>
             </div>
         </div>
 
@@ -33,7 +29,7 @@
             <h2 class="text-xl font-bold text-base-content mb-4">Acciones rápidas</h2>
 
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <a href="{{ route('news.index') }}" class="flex items-center gap-3 p-4 rounded-field bg-primary/10 hover:bg-primary/20 transition-colors">
+                <a href="{{ route('noticias.index') }}" class="flex items-center gap-3 p-4 rounded-field bg-primary/10 hover:bg-primary/20 transition-colors">
                     <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v12a2 2 0 01-2 2zM9 8h6M9 12h6M9 16h3" />

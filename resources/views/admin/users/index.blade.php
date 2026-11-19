@@ -44,9 +44,9 @@
                             </td>
                             <td>
                                 <div class="flex gap-2 justify-end">
-                                    <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-outline btn-xs">Rol</a>
+                                    <a href="{{ route('admin.usuarios.edit', $user) }}" class="btn btn-outline btn-xs">Rol</a>
                                     @if ($user->id !== auth()->id())
-                                        <form method="POST" action="{{ route('admin.users.destroy', $user) }}"
+                                        <form method="POST" action="{{ route('admin.usuarios.destroy', $user) }}"
                                               onsubmit="return confirm('¿Eliminar este usuario?');">
                                             @csrf
                                             @method('DELETE')

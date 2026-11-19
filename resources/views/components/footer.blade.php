@@ -18,9 +18,7 @@
                 <ul class="space-y-2 text-sm text-neutral-content/70">
                     <li><a href="{{ route('home') }}" class="hover:text-primary transition-colors">Home</a></li>
                     <li><a href="{{ route('animes.index') }}" class="hover:text-primary transition-colors">Animes</a></li>
-                    <li><a href="{{ route('news.index') }}" class="hover:text-primary transition-colors">Noticias</a></li>
-                    <li><a href="{{ route('polls.index') }}" class="hover:text-primary transition-colors">Encuestas</a></li>
-                    <li><a href="{{ route('shop.index') }}" class="hover:text-primary transition-colors">Tienda</a></li>
+                    <li><a href="{{ route('noticias.index') }}" class="hover:text-primary transition-colors">Noticias</a></li>
                 </ul>
             </div>
 

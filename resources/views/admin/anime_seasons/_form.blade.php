@@ -30,6 +30,18 @@
 </div>
 
 <div class="form-control">
+    <label class="label"><span class="label-text">Estreno (temporada del año)</span></label>
+    <select name="season_id" class="select select-bordered w-full @error('season_id') select-error @enderror">
+        <option value="">Sin estreno</option>
+        @php $estrenoSel = old('season_id', $animeSeason->season_id ?? null); @endphp
+        @foreach ($estrenos as $estreno)
+            <option value="{{ $estreno->id }}" @selected((string) $estrenoSel === (string) $estreno->id)>{{ $estreno->label }}</option>
+        @endforeach
+    </select>
+    @error('season_id')<span class="text-error text-sm mt-1">{{ $message }}</span>@enderror
+</div>
+
+<div class="form-control">
     <label class="label"><span class="label-text">Título de la temporada</span></label>
     <input type="text" name="title" value="{{ old('title', $animeSeason->title ?? '') }}"
            class="input input-bordered w-full @error('title') input-error @enderror"

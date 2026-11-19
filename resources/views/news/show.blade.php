@@ -1,14 +1,14 @@
 <x-layouts.app :title="$news->seo_title">
     <x-slot:head>
         <meta name="description" content="{{ $news->seo_description }}">
-        <link rel="canonical" href="{{ route('news.show', $news) }}">
+        <link rel="canonical" href="{{ route('noticias.show', $news) }}">
 
         <meta property="og:type" content="article">
         <meta property="og:site_name" content="Frikigami">
         <meta property="og:locale" content="es_MX">
         <meta property="og:title" content="{{ $news->seo_title }}">
         <meta property="og:description" content="{{ $news->seo_description }}">
-        <meta property="og:url" content="{{ route('news.show', $news) }}">
+        <meta property="og:url" content="{{ route('noticias.show', $news) }}">
         @if ($news->cover_image)
             <meta property="og:image" content="{{ url(Storage::url($news->cover_image)) }}">
         @endif
@@ -30,7 +30,7 @@
                 'dateModified' => $news->updated_at->toIso8601String(),
                 'author' => [['@type' => 'Person', 'name' => $news->user->name ?? 'Frikigami']],
                 'publisher' => ['@type' => 'Organization', 'name' => 'Frikigami'],
-                'mainEntityOfPage' => route('news.show', $news),
+                'mainEntityOfPage' => route('noticias.show', $news),
                 'image' => $news->cover_image ? [url(Storage::url($news->cover_image))] : null,
             ]), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) !!}
         </script>
@@ -97,7 +97,7 @@
                     @endif
 
                     @auth
-                        <form method="POST" action="{{ route('comments.store') }}" class="space-y-3">
+                        <form method="POST" action="{{ route('comentarios.store') }}" class="space-y-3">
                             @csrf
                             <input type="hidden" name="commentable_type" value="App\Models\News">
                             <input type="hidden" name="commentable_id" value="{{ $news->id }}">
@@ -129,7 +129,7 @@
                         <ul class="space-y-3">
                             @foreach ($relatedNews as $related)
                                 <li>
-                                    <a href="{{ route('news.show', $related) }}" class="flex items-center gap-3 group">
+                                    <a href="{{ route('noticias.show', $related) }}" class="flex items-center gap-3 group">
                                         <div class="w-14 h-14 rounded-field overflow-hidden shrink-0">
                                             @if ($related->cover_image)
                                                 <img src="{{ Storage::url($related->cover_image) }}" alt="{{ $related->title }}" class="w-full h-full object-cover">
@@ -155,7 +155,7 @@
                         <ul class="space-y-3">
                             @foreach ($latestNews as $latest)
                                 <li>
-                                    <a href="{{ route('news.show', $latest) }}" class="flex items-center gap-3 group">
+                                    <a href="{{ route('noticias.show', $latest) }}" class="flex items-center gap-3 group">
                                         <div class="w-14 h-14 rounded-field overflow-hidden shrink-0">
                                             @if ($latest->cover_image)
                                                 <img src="{{ Storage::url($latest->cover_image) }}" alt="{{ $latest->title }}" class="w-full h-full object-cover">

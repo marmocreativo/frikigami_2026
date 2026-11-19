@@ -77,26 +77,27 @@
 
                     <li class="my-1 h-px bg-base-300" role="separator"></li>
 
-                    <x-admin.nav-item route="admin.news.index" label="Noticias" icon="news" />
+                    <x-admin.nav-item route="admin.noticias.index" label="Noticias" icon="news" />
+                    <x-admin.nav-item route="admin.sliders.index" label="Sliders del inicio" icon="photo" />
 
                     <li class="my-1 h-px bg-base-300" role="separator"></li>
 
                     <x-admin.nav-item route="admin.animes.index" label="Animes" icon="anime" />
-                    <x-admin.nav-item route="admin.anime-seasons.index" label="Temporadas" icon="stack" :child="true" />
-                    <x-admin.nav-item route="admin.episodes.index" label="Episodios" icon="episode" :child="true" />
-                    <x-admin.nav-item route="admin.characters.index" label="Personajes" icon="character" :child="true" />
-                    <x-admin.nav-item route="admin.people.index" label="Personas (Cast)" icon="person" :child="true" />
-                    <x-admin.nav-item route="admin.comments.index" label="Comentarios" icon="comment" :child="true" />
+                    <x-admin.nav-item route="admin.temporadas.index" label="Temporadas" icon="stack" :child="true" />
+                    <x-admin.nav-item route="admin.episodios.index" label="Episodios" icon="episode" :child="true" />
+                    <x-admin.nav-item route="admin.personajes.index" label="Personajes" icon="character" :child="true" />
+                    <x-admin.nav-item route="admin.personas.index" label="Personas (Reparto)" icon="person" :child="true" />
+                    <x-admin.nav-item route="admin.comentarios.index" label="Comentarios" icon="comment" :child="true" />
 
                     <li class="my-1 h-px bg-base-300" role="separator"></li>
 
-                    <x-admin.nav-item route="admin.seasons.index" label="Temporadas" icon="calendar" />
-                    <x-admin.nav-item route="admin.genres.index" label="Géneros" icon="tag" />
+                    <x-admin.nav-item route="admin.estrenos.index" label="Estrenos" icon="calendar" />
+                    <x-admin.nav-item route="admin.generos.index" label="Géneros" icon="tag" />
 
                     <li class="my-1 h-px bg-base-300" role="separator"></li>
 
                     <li class="menu-title is-drawer-close:hidden">Administración</li>
-                    <x-admin.nav-item route="admin.users.index" label="Usuarios" icon="users" />
+                    <x-admin.nav-item route="admin.usuarios.index" label="Usuarios" icon="users" />
 
                     <li class="my-1 h-px bg-base-300" role="separator"></li>
                 </ul>

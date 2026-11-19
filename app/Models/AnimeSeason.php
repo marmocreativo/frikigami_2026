@@ -16,6 +16,7 @@ class AnimeSeason extends Model
         'number',
         'title',
         'year',
+        'season_id',
         'anilist_id',
         'mal_id',
     ];
@@ -23,6 +24,12 @@ class AnimeSeason extends Model
     public function anime(): BelongsTo
     {
         return $this->belongsTo(Anime::class);
+    }
+
+    /** Estreno (temporada del año) en el que salió esta temporada. */
+    public function season(): BelongsTo
+    {
+        return $this->belongsTo(Season::class);
     }
 
     public function episodes(): HasMany

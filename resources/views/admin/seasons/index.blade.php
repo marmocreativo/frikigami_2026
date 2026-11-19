@@ -1,7 +1,7 @@
 <x-layouts.admin title="Temporadas">
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-2xl font-bold">Temporadas del año</h1>
-        <a href="{{ route('admin.seasons.create') }}" class="btn btn-primary btn-sm">+ Nueva Temporada</a>
+        <a href="{{ route('admin.estrenos.create') }}" class="btn btn-primary btn-sm">+ Nueva Temporada</a>
     </div>
 
     @include('admin.partials.alert')
@@ -27,9 +27,9 @@
                                 <div class="flex gap-2 justify-end">
                                     <a href="{{ route('animes.index', ['season' => $season->id]) }}"
                                        class="btn btn-ghost btn-xs" target="_blank">Ver animes</a>
-                                    <a href="{{ route('admin.seasons.edit', $season) }}"
+                                    <a href="{{ route('admin.estrenos.edit', $season) }}"
                                        class="btn btn-outline btn-xs">Editar</a>
-                                    <form method="POST" action="{{ route('admin.seasons.destroy', $season) }}"
+                                    <form method="POST" action="{{ route('admin.estrenos.destroy', $season) }}"
                                           onsubmit="return confirm('¿Eliminar esta temporada? Los animes asociados quedarán sin temporada.');">
                                         @csrf
                                         @method('DELETE')

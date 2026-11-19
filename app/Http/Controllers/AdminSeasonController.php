@@ -40,13 +40,13 @@ class AdminSeasonController extends Controller
 
         Season::create($request->only('name', 'year'));
 
-        return redirect()->route('admin.seasons.index')
+        return redirect()->route('admin.estrenos.index')
             ->with('status', 'Temporada creada correctamente.');
     }
 
     public function show(): RedirectResponse
     {
-        return redirect()->route('admin.seasons.index');
+        return redirect()->route('admin.estrenos.index');
     }
 
     public function edit(Season $season): View
@@ -69,7 +69,7 @@ class AdminSeasonController extends Controller
 
         $season->update($request->only('name', 'year'));
 
-        return redirect()->route('admin.seasons.index')
+        return redirect()->route('admin.estrenos.index')
             ->with('status', 'Temporada actualizada correctamente.');
     }
 
@@ -77,7 +77,7 @@ class AdminSeasonController extends Controller
     {
         $season->delete();
 
-        return redirect()->route('admin.seasons.index')
+        return redirect()->route('admin.estrenos.index')
             ->with('status', 'Temporada eliminada.');
     }
 }

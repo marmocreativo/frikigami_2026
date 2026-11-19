@@ -7,6 +7,7 @@ use App\Models\AnimeSeason;
 use App\Models\Episode;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class AdminEpisodeController extends Controller
@@ -24,21 +25,23 @@ class AdminEpisodeController extends Controller
         // Solo vale si la temporada pertenece al anime elegido
         $currentSeason = $animeSeasons->firstWhere('id', (int) $request->query('anime_season'));
 
-        $episodes = Episode::with('animeSeason.anime')
-            ->when($currentSeason, fn ($query, $season) => $query->where('anime_season_id', $season->id))
-            ->when(
-                ! $currentSeason && $currentAnime,
-                fn ($query) => $query->whereHas('animeSeason', fn ($s) => $s->where('anime_id', $currentAnime->id))
-            )
-            ->when(
-                $currentAnime,
-                fn ($query) => $query->orderBy('anime_season_id')->orderBy('number'),
-                fn ($query) => $query->latest()
-            )
-            ->paginate(30)
+        // Agrupados por anime. Los episodios solo se cargan al filtrar por anime;
+        // sin filtro se muestran las temporadas con su conteo.
+        $groups = Anime::with([
+                'season',
+                'animeSeasons' => fn ($query) => $query
+                    ->when($currentSeason, fn ($q) => $q->where('id', $currentSeason->id))
+                    ->withCount('episodes')
+                    ->when($currentAnime, fn ($q) => $q->with(['episodes' => fn ($e) => $e->orderBy('number')]))
+                    ->orderBy('number'),
+            ])
+            ->whereHas('animeSeasons.episodes')
+            ->when($currentAnime, fn ($query, $anime) => $query->where('id', $anime->id))
+            ->orderBy('title')
+            ->paginate(10)
             ->withQueryString();
 
-        return view('admin.episodes.index', compact('episodes', 'animes', 'currentAnime', 'animeSeasons', 'currentSeason'));
+        return view('admin.episodes.index', compact('groups', 'animes', 'currentAnime', 'animeSeasons', 'currentSeason'));
     }
 
     public function create(Request $request): View
@@ -71,19 +74,28 @@ class AdminEpisodeController extends Controller
             'title'           => ['nullable', 'string', 'max:255'],
             'synopsis'        => ['nullable', 'string'],
             'air_date'        => ['nullable', 'date'],
+            'thumbnail'       => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+        ], [
+            'thumbnail.image' => 'El archivo debe ser una imagen.',
+            'thumbnail.mimes' => 'La imagen debe ser JPG, PNG o WebP.',
+            'thumbnail.max' => 'La imagen no puede pesar más de 4 MB.',
         ]);
 
         $data['user_id'] = auth()->id();
 
+        if ($request->hasFile('thumbnail')) {
+            $data['thumbnail'] = $request->file('thumbnail')->store('episodes', 'public');
+        }
+
         Episode::create($data);
 
-        return redirect()->route('admin.episodes.index')
+        return redirect()->route('admin.episodios.index')
             ->with('status', 'Episodio creado correctamente.');
     }
 
     public function show(Episode $episode): RedirectResponse
     {
-        return redirect()->route('animes.episodes', $episode->animeSeason->anime);
+        return redirect()->route('animes.episodios', $episode->animeSeason->anime);
     }
 
     public function edit(Episode $episode): View
@@ -104,19 +116,43 @@ class AdminEpisodeController extends Controller
             'title'           => ['nullable', 'string', 'max:255'],
             'synopsis'        => ['nullable', 'string'],
             'air_date'        => ['nullable', 'date'],
+            'thumbnail'       => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+        ], [
+            'thumbnail.image' => 'El archivo debe ser una imagen.',
+            'thumbnail.mimes' => 'La imagen debe ser JPG, PNG o WebP.',
+            'thumbnail.max' => 'La imagen no puede pesar más de 4 MB.',
         ]);
+
+        if ($request->hasFile('thumbnail')) {
+            if ($episode->thumbnail) {
+                Storage::disk('public')->delete($episode->thumbnail);
+            }
+            $data['thumbnail'] = $request->file('thumbnail')->store('episodes', 'public');
+        } else {
+            unset($data['thumbnail']);
+
+            // Casilla "Quitar imagen"
+            if ($request->boolean('remove_thumbnail') && $episode->thumbnail) {
+                Storage::disk('public')->delete($episode->thumbnail);
+                $data['thumbnail'] = null;
+            }
+        }
 
         $episode->update($data);
 
-        return redirect()->route('admin.episodes.index')
+        return redirect()->route('admin.episodios.index')
             ->with('status', 'Episodio actualizado correctamente.');
     }
 
     public function destroy(Episode $episode): RedirectResponse
     {
+        if ($episode->thumbnail) {
+            Storage::disk('public')->delete($episode->thumbnail);
+        }
+
         $episode->delete();
 
-        return redirect()->route('admin.episodes.index')
+        return redirect()->route('admin.episodios.index')
             ->with('status', 'Episodio eliminado.');
     }
 }

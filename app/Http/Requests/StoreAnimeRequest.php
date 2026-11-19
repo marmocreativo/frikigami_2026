@@ -19,7 +19,7 @@ class StoreAnimeRequest extends FormRequest
 
         return [
             'title' => ['required', 'string', 'max:255'],
-            'slug' => ['required', 'string', Rule::unique('animes', 'slug')->ignore($animeId)],
+            'slug' => ['required', 'string', Rule::notIn(['genero', 'estreno']), Rule::unique('animes', 'slug')->ignore($animeId)],
             'synopsis' => ['nullable', 'string'],
             'cover_image' => ['nullable', 'image', 'max:2048'],
             'status' => ['required', Rule::in(['upcoming', 'ongoing', 'finished'])],

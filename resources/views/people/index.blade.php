@@ -1,9 +1,6 @@
 <x-layouts.app title="Personas">
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-3xl font-bold">Seiyuus y Staff</h1>
-        @auth
-            <a href="{{ route('people.create') }}" class="btn btn-primary">+ Agregar Persona</a>
-        @endauth
     </div>
 
     @if (session('status'))
@@ -17,7 +14,7 @@
     @else
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
             @foreach ($people as $person)
-                <a href="{{ route('people.show', $person) }}" class="card bg-base-100 shadow-sm hover:shadow-md transition-shadow">
+                <a href="{{ route('personas.show', $person) }}" class="card bg-base-100 shadow-sm hover:shadow-md transition-shadow">
                     <figure class="pt-4">
                         @if ($person->photo)
                             <img src="{{ Storage::url($person->photo) }}" alt="{{ $person->name }}" class="h-24 w-24 rounded-full object-cover">
